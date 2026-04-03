@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migration Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/msal.js/2.38.3/msal-browser.min.js"></script>
+<style>
+:root{--bg:#fff;--bg2:#f7f7f5;--bg3:#f0efe9;--text:#1a1a18;--text2:#6b6b67;--text3:#9d9d98;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--blue-bg:#E6F1FB;--blue-text:#0C447C;--blue-bd:#85B7EB;--green-bg:#EAF3DE;--green-text:#3B6D11;--amber-bg:#FAEEDA;--amber-text:#633806;--red-bg:#FCEBEB;--red-text:#A32D2D;--gray-bg:#F1EFE8;--gray-text:#5F5E5A;--r:8px;--rl:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--text:#f0efe9;--text2:#a0a09a;--text3:#6b6b67;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);--blue-bg:#0C447C;--blue-text:#B5D4F4;--green-bg:#27500A;--green-text:#C0DD97;--amber-bg:#633806;--amber-text:#FAC775;--red-bg:#791F1F;--red-text:#F7C1C1;--gray-bg:#444441;--gray-text:#D3D1C7}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg)}
+#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px}
+#auth-screen h1{font-size:22px;font-weight:500}
+#auth-screen p{color:var(--text2);font-size:13px}
+.ms-btn{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#0078d4;color:#fff;border:none;border-radius:var(--r);font-size:14px;cursor:pointer;font-weight:500}
+.ms-btn:hover{background:#106ebe}
+#app{display:none;max-width:1400px;margin:0 auto;padding:20px 16px 40px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.topbar h1{font-size:18px;font-weight:500}
+.topbar p{font-size:12px;color:var(--text2);margin-top:2px}
+.user-chip{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.u-av{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center}
+.sign-out{font-size:11px;color:var(--text3);cursor:pointer;background:none;border:none;text-decoration:underline}
+.demo-banner{background:var(--amber-bg);color:var(--amber-text);font-size:12px;padding:8px 14px;border-radius:var(--r);margin-bottom:14px}
+.stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--bg2);border-radius:var(--r);padding:10px 12px}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:500;line-height:1}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:3px}
+.pipe-wrap{background:var(--bg2);border-radius:var(--r);padding:10px 14px;margin-bottom:14px}
+.pipe-hdr{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
+.bar-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;display:flex;gap:2px}
+.bar-seg{height:100%;border-radius:2px}
+.leg-row{display:flex;gap:14px;margin-top:6px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.tabs{display:flex;border-bottom:.5px solid var(--border);margin-bottom:14px;overflow-x:auto}
+.tab{padding:7px 16px;cursor:pointer;font-size:12px;white-space:nowrap;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.tab-badge{background:var(--bg2);color:var(--text2);font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px}
+.tab-content{display:none}.tab-content.active{display:block}
+.toolbar{display:flex;gap:7px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:140px;height:30px;font-size:12px;padding:0 10px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--bg);color:var(--text);outline:none}
+.toolbar input:focus{border-color:#0078d4}
+.fbtn{height:30px;padding:0 10px;font-size:11px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--bg);color:var(--text2);cursor:pointer}
+.fbtn.on{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-bd)}
+.save-ind{font-size:11px;color:var(--text3);margin-left:auto}
+.save-ind.saving{color:#0078d4}.save-ind.saved{color:var(--green-text)}
+.tbl{border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.col-hdr{display:grid;grid-template-columns:26px minmax(0,1.6fr) 88px repeat(5,minmax(0,1fr)) minmax(0,1.1fr);background:var(--bg2);border-bottom:.5px solid var(--border)}
+.hc{padding:7px 8px;font-size:11px;font-weight:500;color:var(--text2)}
+.hc.ctr{text-align:center}
+.row-wrap{border-bottom:.5px solid var(--border)}.row-wrap:last-child{border-bottom:none}
+.tr-row{display:grid;grid-template-columns:26px minmax(0,1.6fr) 88px repeat(5,minmax(0,1fr)) minmax(0,1.1fr);align-items:center;cursor:pointer;background:var(--bg2)}
+.tr-row:hover{background:var(--bg3)}
+.tc{padding:8px 8px;font-size:12px}
+.chev{font-size:9px;color:var(--text3);transition:transform .15s;display:inline-block}
+.chev.open{transform:rotate(90deg)}
+.badge-cnt{background:var(--bg);color:var(--text2);font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px}
+.note-chip{font-size:10px;color:var(--amber-text);background:var(--amber-bg);padding:1px 6px;border-radius:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
+.cat-chip{font-size:10px;color:var(--gray-text);background:var(--gray-bg);padding:1px 6px;border-radius:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block}
+.cust-rows{background:var(--bg)}
+.c-row{display:grid;grid-template-columns:26px 26px minmax(0,1.6fr) 88px repeat(5,minmax(0,1fr)) minmax(0,1.1fr);align-items:center;border-bottom:.5px solid var(--border);cursor:pointer}
+.c-row:last-child{border-bottom:none}.c-row:hover{background:var(--bg2)}
+.cc{padding:7px 8px;font-size:11px}
+.task-detail-rows{background:var(--bg);border-top:.5px solid var(--border)}
+.td-row{display:grid;grid-template-columns:52px 26px minmax(0,1fr) 110px 110px;align-items:center;border-bottom:.5px solid var(--border);cursor:pointer}
+.td-row:hover{background:var(--bg2)}.td-row:last-child{border-bottom:none}
+.step-rows{background:var(--bg)}
+.step-row{display:grid;grid-template-columns:78px 1fr;align-items:start;border-bottom:.5px solid var(--border);padding:7px 8px 7px 0}
+.step-row:last-child{border-bottom:none}
+.cbx{width:14px;height:14px;border-radius:3px;border:.5px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;margin:2px 0 0 28px;transition:background .1s}
+.cbx.done{background:#3B6D11;border-color:#3B6D11}
+.pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:500;white-space:nowrap}
+.p-done{background:var(--green-bg);color:var(--green-text)}
+.p-prog{background:var(--blue-bg);color:var(--blue-text)}
+.p-wait{background:var(--gray-bg);color:var(--gray-text)}
+.p-dis{background:var(--red-bg);color:var(--red-text)}
+.pill-sel{border:none;background:transparent;font-size:10px;font-weight:500;cursor:pointer;padding:0;appearance:none;width:100%}
+.pbar-wrap{display:flex;align-items:center;gap:5px}
+.pbar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;flex:1;min-width:30px}
+.pbar-fill{height:100%;border-radius:2px}
+.date-cell{font-size:10px;color:var(--text2)}
+.date-cell.overdue{color:var(--red-text);font-weight:500}
+.date-cell.soon{color:var(--amber-text);font-weight:500}
+input[type=date]{font-size:10px;color:var(--text2);background:transparent;border:none;cursor:pointer;width:90px}
+input[type=date]:focus{outline:none;color:var(--text)}
+.csm-wrap{display:flex;flex-direction:column;gap:4px}
+.csm-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;background:var(--bg2);padding:2px 7px;border-radius:10px;color:var(--text2)}
+.csm-av{width:16px;height:16px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+select.csm-sel{font-size:10px;background:var(--bg2);border:.5px solid var(--border);border-radius:10px;padding:2px 6px;color:var(--text2);cursor:pointer}
+.inline-edit{background:transparent;border:none;border-bottom:1px solid var(--border2);font-size:11px;color:var(--text);width:100%;outline:none}
+.inline-edit:focus{border-bottom-color:#0078d4}
+.cmt-display{font-size:11px;color:var(--text2);background:var(--bg2);padding:3px 8px;border-radius:var(--r);margin-top:3px;cursor:pointer}
+.job-link{font-size:10px;color:var(--blue-text);background:var(--blue-bg);padding:1px 6px;border-radius:3px;text-decoration:none}
+.step-label{font-size:11px}
+.step-label.done{text-decoration:line-through;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <svg viewBox="0 0 23 23" style="width:48px;height:48px"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+  <h1>Migration Tracker</h1>
+  <p>Sign in with your Microsoft 365 account to continue</p>
+  <button class="ms-btn" onclick="signIn()">
+    <svg viewBox="0 0 23 23" style="width:20px;height:20px"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+    Sign in with Microsoft
+  </button>
+  <p id="auth-err" style="color:var(--red-text);font-size:12px;display:none"></p>
+  <button onclick="loadDemo()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;margin-top:8px">Preview with demo data (no sign-in)</button>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div><h1>Migration tracker</h1><p id="last-upd">Loading…</p></div>
+    <div class="user-chip"><div class="u-av" id="u-init">?</div><span id="u-name"></span><button class="sign-out" onclick="signOut()">Sign out</button></div>
+  </div>
+  <div id="demo-banner" class="demo-banner" style="display:none">Preview mode — changes won't be saved. <a href="#" onclick="showAuth()" style="color:var(--amber-text)">Sign in to save.</a></div>
+  <div class="stat-row" id="stat-row"></div>
+  <div class="pipe-wrap" id="pipe-bar"></div>
+  <div class="tabs" id="main-tabs"></div>
+  <div id="tab-contents"></div>
+</div>
+
+<script>
+const CFG={clientId:'YOUR_AZURE_APP_CLIENT_ID',tenantId:'YOUR_AZURE_TENANT_ID',siteId:'YOUR_SHAREPOINT_SITE_ID',lists:{tranches:'YOUR_TRANCHES_LIST_ID',customers:'YOUR_CUSTOMERS_LIST_ID',tasks:'YOUR_TASKS_LIST_ID'}};
+const SCOPES=['Sites.ReadWrite.All','User.Read'];
+const TASKS=['Discovery','Crawl append','Matching','Data quality','Monitoring'];
+
+// ── Per-platform checklist templates ──────────────────────────────────────
+// Each platform has its own steps per task. Edit these here when finalized,
+// or store them in a SharePoint "PlatformChecklists" list and load via API.
+// TBD platforms show placeholder steps until their checklists are confirmed.
+const PLATFORM_STEPS={
+  ngpi:{
+    'Discovery':['Schedule discovery job','Configure job settings','Set crawl frequency','Verify job link is active','Monitor first run output','Stakeholder sign-off'],
+    'Crawl append':['Define crawl domains','Whitelist approved domains','Run crawl append job','Review append results','Resolve BOT issues if any','Sign off'],
+    'Matching':['Whitelist matching domains','Start hybrid matching run','Review match rates','Handle edge cases','Validate final results','Sign off'],
+    'Data quality':['Define DQ rules','Run completeness check','Review accuracy %','Generate exception report','Build remediation plan','Final sign off'],
+    'Monitoring':['Schedule monitoring job','Configure alert thresholds','Capture baseline metrics','Verify monitoring is active','Review first report','Sign off']
+  },
+  bpa:{
+    'Discovery':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Step 4 — TBD','Sign off'],
+    'Crawl append':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Matching':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Data quality':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Monitoring':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off']
+  },
+  wmap:{
+    'Discovery':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Step 4 — TBD','Sign off'],
+    'Crawl append':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Matching':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Data quality':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Monitoring':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off']
+  },
+  numap:{
+    'Discovery':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Step 4 — TBD','Sign off'],
+    'Crawl append':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Matching':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Data quality':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off'],
+    'Monitoring':['Step 1 — TBD','Step 2 — TBD','Step 3 — TBD','Sign off']
+  }
+};
+// Helper: get steps for a given platform + task name
+function getStepDefs(platform,taskName){
+  return (PLATFORM_STEPS[platform]||PLATFORM_STEPS.ngpi)[taskName]||[];
+}
+
+const TABS=[{key:'ngpi',label:'NGPI',count:90},{key:'bpa',label:'BPA',count:82},{key:'wmap',label:'Wiser MAP',count:14},{key:'numap',label:'NuMap',count:36}];
+
+let msal_,token_,user_,demo=false;
+function initMsal(){msal_=new msal.PublicClientApplication({auth:{clientId:CFG.clientId,authority:`https://login.microsoftonline.com/${CFG.tenantId}`,redirectUri:location.href},cache:{cacheLocation:'sessionStorage'}});}
+async function signIn(){try{initMsal();const r=await msal_.loginPopup({scopes:SCOPES});user_=r.account;token_=await getToken();showApp();await loadAll();}catch(e){document.getElementById('auth-err').textContent='Sign-in failed: '+e.message;document.getElementById('auth-err').style.display='block';}}
+async function getToken(){const a=msal_.getAllAccounts();if(!a.length)return null;try{return(await msal_.acquireTokenSilent({scopes:SCOPES,account:a[0]})).accessToken;}catch{return(await msal_.acquireTokenPopup({scopes:SCOPES})).accessToken;}}
+function signOut(){if(!demo)msal_.logoutPopup();showAuth();}
+function showApp(){document.getElementById('auth-screen').style.display='none';document.getElementById('app').style.display='block';if(user_){const n=user_.name||user_.username;document.getElementById('u-init').textContent=n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();document.getElementById('u-name').textContent=n;}}
+function showAuth(){document.getElementById('auth-screen').style.display='flex';document.getElementById('app').style.display='none';}
+
+const gUrl=p=>`https://graph.microsoft.com/v1.0/sites/${CFG.siteId}${p}`;
+const gH=()=>({Authorization:`Bearer ${token_}`,'Content-Type':'application/json'});
+async function spGet(p){const r=await fetch(gUrl(p),{headers:gH()});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function spPatch(p,b){const r=await fetch(gUrl(p),{method:'PATCH',headers:gH(),body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
+
+let S={tranches:[],customers:[],tasks:[]};
+async function loadAll(){document.getElementById('last-upd').textContent='Loading…';try{const[tr,cu,ta]=await Promise.all([spGet(`/lists/${CFG.lists.tranches}/items?expand=fields&$top=500`),spGet(`/lists/${CFG.lists.customers}/items?expand=fields&$top=1000`),spGet(`/lists/${CFG.lists.tasks}/items?expand=fields&$top=5000`)]);S.tranches=tr.value.map(i=>({...i.fields,_id:i.id}));S.customers=cu.value.map(i=>({...i.fields,_id:i.id}));S.tasks=ta.value.map(i=>({...i.fields,_id:i.id}));document.getElementById('last-upd').textContent='Last updated '+new Date().toLocaleTimeString();renderAll();}catch(e){document.getElementById('last-upd').textContent='Error — check console';console.error(e);}}
+
+function loadDemo(){
+  demo=true;user_={name:'Demo User'};showApp();
+  document.getElementById('demo-banner').style.display='block';
+  const t0=new Date('2026-04-02');
+  const add=d=>{const r=new Date(t0);r.setDate(r.getDate()+d);return r.toISOString().split('T')[0];};
+
+  S.tranches=[
+    {_id:'t0',Title:'Tranche 0',Platform:'ngpi',Phase:'Matching',Customers:12,CSM:'Sarah K.',GoLive:add(45),Notes:null},
+    {_id:'t1',Title:'Tranche 1',Platform:'ngpi',Phase:'Matching',Customers:7,CSM:'James T.',GoLive:add(50),Notes:null},
+    {_id:'t2',Title:'Tranche 2',Platform:'ngpi',Phase:'Matching',Customers:11,CSM:'Maria L.',GoLive:add(60),Notes:null},
+    {_id:'t3',Title:'Tranche 3',Platform:'ngpi',Phase:'Matching',Customers:8,CSM:'David R.',GoLive:add(65),Notes:null},
+    {_id:'t4',Title:'Tranche 4',Platform:'ngpi',Phase:'Matching',Customers:6,CSM:'Priya N.',GoLive:add(70),Notes:null},
+    {_id:'t5',Title:'Tranche 5',Platform:'ngpi',Phase:'Discovery',Customers:6,CSM:'Tom W.',GoLive:add(90),Notes:null},
+    {_id:'t6',Title:'Tranche 6',Platform:'ngpi',Phase:'Matching',Customers:7,CSM:'Sarah K.',GoLive:add(55),Notes:null},
+    {_id:'t7',Title:'Tranche 7',Platform:'ngpi',Phase:'Matching',Customers:7,CSM:'James T.',GoLive:add(60),Notes:null},
+    {_id:'t8',Title:'Tranche 8',Platform:'ngpi',Phase:'Discovery',Customers:5,CSM:'Maria L.',GoLive:add(100),Notes:null},
+    {_id:'t9',Title:'Tranche 9',Platform:'ngpi',Phase:'Discovery',Customers:6,CSM:'David R.',GoLive:add(105),Notes:null},
+    {_id:'t10',Title:'Tranche 10',Platform:'ngpi',Phase:'Discovery',Customers:8,CSM:'Priya N.',GoLive:add(115),Notes:null},
+    {_id:'t11',Title:'Tranche 11',Platform:'ngpi',Phase:'Discovery',Customers:5,CSM:'Tom W.',GoLive:add(120),Notes:null},
+    {_id:'t12',Title:'Tranche 12',Platform:'ngpi',Phase:'Discovery',Customers:2,CSM:'Sarah K.',GoLive:add(150),Notes:'Largest: Radwell and Zoro'},
+    {_id:'t13',Title:'Tranche 13',Platform:'ngpi',Phase:'Discovery',Customers:5,CSM:'James T.',GoLive:add(160),Notes:'Incoming — not started'},
+    {_id:'bpa-t1',Title:'BPA Active',Platform:'bpa',Phase:'Discovery',Customers:78,CSM:'Maria L.',GoLive:add(120),Notes:'Tranche assignments TBD'},
+    {_id:'bpa-t2',Title:'BPA Churned / Ignored',Platform:'bpa',Phase:'Discovery',Customers:4,CSM:'Maria L.',GoLive:null,Notes:'4 customers ignored or churned'},
+    {_id:'wmap-t1',Title:'Wiser MAP',Platform:'wmap',Phase:'Discovery',Customers:14,CSM:'David R.',GoLive:add(110),Notes:null},
+    {_id:'nm-t1',Title:'NuMap Tranche 1',Platform:'numap',Phase:'Discovery',Customers:20,CSM:'Priya N.',GoLive:add(90),Notes:'20 customers'},
+    {_id:'nm-t2',Title:'NuMap Tranche 2',Platform:'numap',Phase:'Discovery',Customers:7,CSM:'Priya N.',GoLive:add(110),Notes:'7 customers'},
+    {_id:'nm-t3',Title:'NuMap Tranche 3',Platform:'numap',Phase:'Discovery',Customers:9,CSM:'Tom W.',GoLive:add(130),Notes:'9 customers'},
+  ];
+
+  const raw=[
+    // ── NGPI ──
+    {_id:'n0',t:'t0',p:'ngpi',name:'Toshiba',cid:'555158',freq:'Daily',st:'production',hd:add(40),csm:'Sarah K.',notes:null,job:'customertoshiba (555158)',lnk:'https://orchestration.wiser.com/jobs/68f7b0f861fc5928bf0b8175'},
+    {_id:'n1',t:'t0',p:'ngpi',name:'Home Hardware LBM',cid:'555028',freq:'Weekly',st:'production',hd:add(42),csm:'Sarah K.',notes:null,job:'Home Hardware LBM (555028)',lnk:'https://orchestration.wiser.com/jobs/68a35f321e91164be7d184b8'},
+    {_id:'n2',t:'t0',p:'ngpi',name:'PC Connection',cid:'555063',freq:'Daily',st:'production',hd:add(44),csm:'Sarah K.',notes:null,job:'PC Connection (555063)',lnk:'https://orchestration.wiser.com/jobs/68a7808524d57a833a4735f3'},
+    {_id:'n3',t:'t0',p:'ngpi',name:'Costco Canada',cid:'555385',freq:'Biweekly',st:'production',hd:add(50),csm:'Sarah K.',notes:null,job:'CostcoCA (555385)',lnk:'https://orchestration.wiser.com/jobs/698019636dfce9e1f8c0ff96'},
+    {_id:'n4',t:'t0',p:'ngpi',name:'Best Buy',cid:'555070',freq:'Daily',st:'production',hd:add(55),csm:'Sarah K.',notes:'Blocked domains: homedepot, lowes, walmart',job:null,lnk:null},
+    {_id:'n5',t:'t1',p:'ngpi',name:'Petwise',cid:'555755',freq:null,st:'production',hd:add(48),csm:'James T.',notes:'25% renewal risk',job:'Petwise (555755)',lnk:'https://orchestration.wiser.com/jobs/68e010b42449d6a4bfea0fa8'},
+    {_id:'n6',t:'t1',p:'ngpi',name:'Rrigoods',cid:'555754',freq:null,st:'production',hd:add(50),csm:'James T.',notes:'90% – expires 3/7/27',job:'Rrigoods700 (555754)',lnk:'https://orchestration.wiser.com/jobs/697c6c96c515e84a0d112ea6'},
+    {_id:'n7',t:'t1',p:'ngpi',name:'The Brick',cid:'555328',freq:null,st:'production',hd:add(52),csm:'James T.',notes:'90% – expires 12/31/26',job:'TheBrick (555328)',lnk:'https://orchestration.wiser.com/jobs/696da02b3384b43abc98ae21'},
+    {_id:'n8',t:'t1',p:'ngpi',name:'RepairClinic',cid:'555439',freq:null,st:'production',hd:add(50),csm:'James T.',notes:'100% – auto renewed',job:'RepairClinic (555439)',lnk:'https://orchestration.wiser.com/jobs/696e6c2cd1d011cb20237a0f'},
+    {_id:'n9',t:'t2',p:'ngpi',name:'Electrolux',cid:'555834',freq:null,st:'production',hd:add(58),csm:'Maria L.',notes:null,job:'Electrolux780 (555834)',lnk:'https://orchestration.wiser.com/jobs/697c6e73ac0d44c1b0ad6229'},
+    {_id:'n10',t:'t2',p:'ngpi',name:'Rockler',cid:'555747',freq:null,st:'production',hd:add(60),csm:'Maria L.',notes:'90% – expires 1/7/27',job:'Rockler693 (555747)',lnk:'https://orchestration.wiser.com/jobs/697c724ac515e84a0d11327e'},
+    {_id:'n11',t:'t2',p:'ngpi',name:'84 Lumber',cid:'555154',freq:null,st:'production',hd:add(28),csm:'Maria L.',notes:'Expires 4/30/26 – at risk',job:'84lumber (555154)',lnk:'https://orchestration.wiser.com/jobs/697d05ff15da8e8c50bc887b'},
+    {_id:'n12',t:'t3',p:'ngpi',name:'Oscar de France',cid:'555735',freq:null,st:'churned',hd:null,csm:'David R.',notes:'Customer churned',job:'Disabled',lnk:null},
+    {_id:'n13',t:'t3',p:'ngpi',name:'Purina Canada',cid:'555641',freq:null,st:'production',hd:add(63),csm:'David R.',notes:'BOT issues found',job:'purinacanada (555641)',lnk:'https://orchestration.wiser.com/jobs/6983bb0bd7806b82a6ebbbf3'},
+    {_id:'n14',t:'t4',p:'ngpi',name:'Lifetime',cid:'555099',freq:'Daily',st:'production',hd:add(68),csm:'Priya N.',notes:null,job:'lifetime (555099)',lnk:'https://orchestration.wiser.com/jobs/698a25c5e848ba27197d8fc8'},
+    {_id:'n15',t:'t5',p:'ngpi',name:'CPO2',cid:'36074',freq:'Weekly',st:'production',hd:add(88),csm:'Tom W.',notes:'Discovery complete',job:'cpo2 (36074)',lnk:'https://orchestration.wiser.com/jobs/698a2b598f3940f5c55cd934'},
+    {_id:'n16',t:'t5',p:'ngpi',name:'Rustoleum',cid:'555798',freq:'Weekly',st:'production',hd:add(90),csm:'Tom W.',notes:null,job:'Rustoleum (555798)',lnk:'https://orchestration.wiser.com/jobs/69bc65e652894de36179721b'},
+    {_id:'n17',t:'t5',p:'ngpi',name:'Bass Pro',cid:'555626',freq:'Weekly',st:'production',hd:add(95),csm:'Tom W.',notes:'2 groups running, 660k catalog',job:null,lnk:null},
+    {_id:'n18',t:'t6',p:'ngpi',name:'Hisense UK',cid:'555795',freq:null,st:'production',hd:add(53),csm:'Sarah K.',notes:'Discovery complete',job:'hisenseuk (555795)',lnk:'https://orchestration.wiser.com/jobs/698a32378f3940f5c55cdc2b'},
+    {_id:'n19',t:'t7',p:'ngpi',name:'BSR Stancash',cid:'555791',freq:'Daily',st:'production',hd:add(58),csm:'James T.',notes:'BOT resolved',job:'bsrstancash (555791)',lnk:'https://orchestration.wiser.com/jobs/698a36e6e848ba27197d981c'},
+    {_id:'n20',t:'t8',p:'ngpi',name:'eStrading Bathrooms',cid:'555827',freq:null,st:'onboarding',hd:add(100),csm:'Maria L.',notes:'BOT resolved',job:'estrading (555827)',lnk:'https://orchestration.wiser.com/jobs/698a3bfe8f3940f5c55ce26b'},
+    {_id:'n21',t:'t9',p:'ngpi',name:'Vitamin Shoppe',cid:'555815',freq:null,st:'onboarding',hd:add(103),csm:'David R.',notes:'BOT resolved',job:'vitaminshoppe (555815)',lnk:'https://orchestration.wiser.com/jobs/698a3e901f4ec7bc059a15b5'},
+    {_id:'n22',t:'t10',p:'ngpi',name:'RealTruck',cid:'555825',freq:null,st:'onboarding',hd:add(113),csm:'Priya N.',notes:'BOT issues found',job:'Realtruck (555825)',lnk:'https://orchestration.wiser.com/jobs/69727d490e4ffc46b78bf0c2'},
+    {_id:'n23',t:'t10',p:'ngpi',name:'Mattress Firm',cid:'555828',freq:null,st:'onboarding',hd:add(115),csm:'Priya N.',notes:'Complete checking',job:'mattressfirm (555828)',lnk:'https://orchestration.wiser.com/jobs/698a3fb21f4ec7bc059a1679'},
+    {_id:'n24',t:'t11',p:'ngpi',name:'Jenson USA 2',cid:'555805',freq:'Daily',st:'onboarding',hd:add(118),csm:'Tom W.',notes:'Discovery complete',job:'jensonusa2 (555805)',lnk:'https://orchestration.wiser.com/jobs/698a4154e848ba27197d9e17'},
+    {_id:'n25',t:'t12',p:'ngpi',name:'Radwell',cid:'555801',freq:null,st:'production',hd:add(148),csm:'Sarah K.',notes:'Do not run yet',job:null,lnk:null},
+    {_id:'n26',t:'t12',p:'ngpi',name:'Zoro',cid:'555008',freq:'Weekly',st:'production',hd:add(150),csm:'Sarah K.',notes:'Do not run yet',job:null,lnk:null},
+    // ── BPA active (from Raw Data sheet) ──
+    {_id:'ba0',t:'bpa-t1',p:'bpa',name:'AHF',cid:null,freq:null,st:'production',hd:add(100),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba1',t:'bpa-t1',p:'bpa',name:'Airxcel',cid:null,freq:null,st:'production',hd:add(101),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba2',t:'bpa-t1',p:'bpa',name:'Ansell',cid:null,freq:null,st:'production',hd:add(102),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba3',t:'bpa-t1',p:'bpa',name:'Arnott',cid:null,freq:null,st:'production',hd:add(103),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba4',t:'bpa-t1',p:'bpa',name:'Bauerfeind',cid:null,freq:null,st:'production',hd:add(104),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba5',t:'bpa-t1',p:'bpa',name:'Beats by Dre UPP',cid:null,freq:null,st:'production',hd:add(105),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba6',t:'bpa-t1',p:'bpa',name:'Beautyrest',cid:null,freq:null,st:'production',hd:add(106),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba7',t:'bpa-t1',p:'bpa',name:'Beautyrest Black',cid:null,freq:null,st:'production',hd:add(107),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba8',t:'bpa-t1',p:'bpa',name:'Big Bike Parts',cid:null,freq:null,st:'production',hd:add(108),csm:'Maria L.',notes:null,job:'(BPA) Bike Bike Parts - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69b8cf1d69e0c6b47f702f5e'},
+    {_id:'ba9',t:'bpa-t1',p:'bpa',name:'Bilstein',cid:null,freq:null,st:'production',hd:add(109),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba10',t:'bpa-t1',p:'bpa',name:'BRK',cid:null,freq:null,st:'production',hd:add(110),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba11',t:'bpa-t1',p:'bpa',name:'Cal Mil',cid:null,freq:null,st:'production',hd:add(111),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba12',t:'bpa-t1',p:'bpa',name:'Cole Haan',cid:null,freq:null,st:'production',hd:add(112),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba13',t:'bpa-t1',p:'bpa',name:'DanaCorp',cid:null,freq:null,st:'production',hd:add(113),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba14',t:'bpa-t1',p:'bpa',name:'DanaCorp UJoints',cid:null,freq:null,st:'production',hd:add(114),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba15',t:'bpa-t1',p:'bpa',name:'Dan Post Boots',cid:null,freq:null,st:'production',hd:add(115),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba16',t:'bpa-t1',p:'bpa',name:'Eaton Electric',cid:null,freq:null,st:'production',hd:add(116),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba17',t:'bpa-t1',p:'bpa',name:'Eaton Vehicle Group',cid:null,freq:null,st:'production',hd:add(117),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba18',t:'bpa-t1',p:'bpa',name:'EMC Hospitality',cid:null,freq:null,st:'production',hd:add(118),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba19',t:'bpa-t1',p:'bpa',name:'Encompass',cid:null,freq:null,st:'production',hd:add(119),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba20',t:'bpa-t1',p:'bpa',name:'ENERSYS',cid:null,freq:null,st:'production',hd:add(120),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba21',t:'bpa-t1',p:'bpa',name:'English Riding Supply',cid:null,freq:null,st:'production',hd:add(121),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba22',t:'bpa-t1',p:'bpa',name:'Federal Industries',cid:null,freq:null,st:'production',hd:add(122),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba23',t:'bpa-t1',p:'bpa',name:'FedPro',cid:null,freq:null,st:'production',hd:add(123),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba24',t:'bpa-t1',p:'bpa',name:'Fiskars Gerber Gear',cid:null,freq:null,st:'production',hd:add(124),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba25',t:'bpa-t1',p:'bpa',name:'Fox Head',cid:null,freq:null,st:'production',hd:add(125),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba26',t:'bpa-t1',p:'bpa',name:'General Motors',cid:null,freq:null,st:'production',hd:add(126),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba27',t:'bpa-t1',p:'bpa',name:'Goodyear',cid:null,freq:null,st:'production',hd:add(127),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba28',t:'bpa-t1',p:'bpa',name:'Goodyear ATC',cid:null,freq:null,st:'production',hd:add(128),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba29',t:'bpa-t1',p:'bpa',name:'Goodyear CA',cid:null,freq:null,st:'production',hd:add(129),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba30',t:'bpa-t1',p:'bpa',name:'Grundfos',cid:null,freq:null,st:'production',hd:add(130),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba31',t:'bpa-t1',p:'bpa',name:'HH Brown',cid:null,freq:null,st:'production',hd:add(131),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba32',t:'bpa-t1',p:'bpa',name:"Hill's Pet",cid:null,freq:null,st:'production',hd:add(132),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba33',t:'bpa-t1',p:'bpa',name:'Hoshino',cid:null,freq:null,st:'production',hd:add(133),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba34',t:'bpa-t1',p:'bpa',name:'Hoshizaki UPP',cid:null,freq:null,st:'production',hd:add(134),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba35',t:'bpa-t1',p:'bpa',name:'Integrated Supply Network',cid:null,freq:null,st:'production',hd:add(135),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba36',t:'bpa-t1',p:'bpa',name:'BPA Internal',cid:null,freq:null,st:'production',hd:add(136),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba37',t:'bpa-t1',p:'bpa',name:'Jon Renau',cid:null,freq:null,st:'production',hd:add(137),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba38',t:'bpa-t1',p:'bpa',name:'Jon Renau AU',cid:null,freq:null,st:'production',hd:add(138),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba39',t:'bpa-t1',p:'bpa',name:'Justin Boots',cid:null,freq:null,st:'production',hd:add(139),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba40',t:'bpa-t1',p:'bpa',name:'Lego',cid:null,freq:null,st:'production',hd:add(140),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba41',t:'bpa-t1',p:'bpa',name:'Lego RPM',cid:null,freq:null,st:'production',hd:add(141),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba42',t:'bpa-t1',p:'bpa',name:'LEM Products',cid:null,freq:null,st:'production',hd:add(142),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba43',t:'bpa-t1',p:'bpa',name:'Leupold Stevens',cid:null,freq:null,st:'production',hd:add(143),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba44',t:'bpa-t1',p:'bpa',name:'Lippert Components',cid:null,freq:null,st:'production',hd:add(144),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba45',t:'bpa-t1',p:'bpa',name:'McLeod Racing',cid:null,freq:null,st:'production',hd:add(145),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba46',t:'bpa-t1',p:'bpa',name:'McLeod Racing (alt)',cid:null,freq:null,st:'production',hd:add(146),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba47',t:'bpa-t1',p:'bpa',name:'Mevotech',cid:null,freq:null,st:'production',hd:add(147),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba48',t:'bpa-t1',p:'bpa',name:'Mickey Thompson Tires',cid:null,freq:null,st:'production',hd:add(148),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba49',t:'bpa-t1',p:'bpa',name:'Oculus VR',cid:null,freq:null,st:'production',hd:add(149),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba50',t:'bpa-t1',p:'bpa',name:'Painless Performance',cid:null,freq:null,st:'production',hd:add(150),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba51',t:'bpa-t1',p:'bpa',name:'Pentland',cid:null,freq:null,st:'production',hd:add(151),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba52',t:'bpa-t1',p:'bpa',name:'Promaster',cid:null,freq:null,st:'production',hd:add(152),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba53',t:'bpa-t1',p:'bpa',name:'Puma',cid:null,freq:null,st:'production',hd:add(153),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba54',t:'bpa-t1',p:'bpa',name:'Putco',cid:null,freq:null,st:'production',hd:add(154),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba55',t:'bpa-t1',p:'bpa',name:'Raceline Wheels',cid:null,freq:null,st:'production',hd:add(155),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba56',t:'bpa-t1',p:'bpa',name:'Razor',cid:null,freq:null,st:'production',hd:add(156),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba57',t:'bpa-t1',p:'bpa',name:'Regal Rexnord',cid:null,freq:null,st:'production',hd:add(157),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba58',t:'bpa-t1',p:'bpa',name:'Revelyst',cid:null,freq:null,st:'production',hd:add(158),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba59',t:'bpa-t1',p:'bpa',name:'Rigid Industries',cid:null,freq:null,st:'production',hd:add(159),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba60',t:'bpa-t1',p:'bpa',name:'Samsung Appliances',cid:null,freq:null,st:'production',hd:add(160),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba61',t:'bpa-t1',p:'bpa',name:'Seirus',cid:null,freq:null,st:'production',hd:add(161),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba62',t:'bpa-t1',p:'bpa',name:'Serta',cid:null,freq:null,st:'production',hd:add(162),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba63',t:'bpa-t1',p:'bpa',name:'Serta Simmons Bedding',cid:null,freq:null,st:'production',hd:add(163),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba64',t:'bpa-t1',p:'bpa',name:'SRAM',cid:null,freq:null,st:'production',hd:add(164),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba65',t:'bpa-t1',p:'bpa',name:'Standard Motor Products',cid:null,freq:null,st:'production',hd:add(165),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba66',t:'bpa-t1',p:'bpa',name:'TireCo',cid:null,freq:null,st:'production',hd:add(166),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba67',t:'bpa-t1',p:'bpa',name:'TireCo RM',cid:null,freq:null,st:'production',hd:add(167),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba68',t:'bpa-t1',p:'bpa',name:'Trane',cid:null,freq:null,st:'production',hd:add(168),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba69',t:'bpa-t1',p:'bpa',name:'Traxxas',cid:null,freq:null,st:'production',hd:add(169),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba70',t:'bpa-t1',p:'bpa',name:'Ultimate Support',cid:null,freq:null,st:'production',hd:add(170),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba71',t:'bpa-t1',p:'bpa',name:'Umbra',cid:null,freq:null,st:'production',hd:add(171),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba72',t:'bpa-t1',p:'bpa',name:'VF Imagewear US',cid:null,freq:null,st:'production',hd:add(172),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba73',t:'bpa-t1',p:'bpa',name:'Vision Wheel',cid:null,freq:null,st:'production',hd:add(173),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba74',t:'bpa-t1',p:'bpa',name:'Wheel Pros',cid:null,freq:null,st:'production',hd:add(174),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba75',t:'bpa-t1',p:'bpa',name:'WWRD',cid:null,freq:null,st:'production',hd:add(175),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba76',t:'bpa-t1',p:'bpa',name:'Yamaha Motor',cid:null,freq:null,st:'production',hd:add(176),csm:'Maria L.',notes:null,job:null,lnk:null},
+    {_id:'ba77',t:'bpa-t1',p:'bpa',name:'Zoeller',cid:null,freq:null,st:'production',hd:add(177),csm:'Maria L.',notes:null,job:null,lnk:null},
+    // BPA churned
+    {_id:'bc0',t:'bpa-t2',p:'bpa',name:'Aeromotive',cid:null,freq:null,st:'churned',hd:null,csm:'Maria L.',notes:'Ignored / churned',job:null,lnk:null},
+    {_id:'bc1',t:'bpa-t2',p:'bpa',name:'Jackson',cid:null,freq:null,st:'churned',hd:null,csm:'Maria L.',notes:'Ignored / churned',job:null,lnk:null},
+    {_id:'bc2',t:'bpa-t2',p:'bpa',name:'Pertronix',cid:null,freq:null,st:'churned',hd:null,csm:'Maria L.',notes:'Ignored / churned',job:null,lnk:null},
+    {_id:'bc3',t:'bpa-t2',p:'bpa',name:'Scarpa',cid:null,freq:null,st:'churned',hd:null,csm:'Maria L.',notes:'Ignored / churned',job:null,lnk:null},
+    // ── Wiser MAP (from Raw Data sheet) ──
+    {_id:'wm0',t:'wmap-t1',p:'wmap',name:'LG Canada',cid:null,freq:null,st:'production',hd:add(108),csm:'David R.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'wm1',t:'wmap-t1',p:'wmap',name:'100PercentMoto',cid:null,freq:null,st:'production',hd:add(110),csm:'David R.',notes:'Apparel / Sportswear',job:null,lnk:null},
+    {_id:'wm2',t:'wmap-t1',p:'wmap',name:'ExxelOutdoors',cid:null,freq:null,st:'production',hd:add(112),csm:'David R.',notes:'Apparel / Sportswear',job:null,lnk:null},
+    {_id:'wm3',t:'wmap-t1',p:'wmap',name:'AmericanMetalCraft',cid:null,freq:null,st:'production',hd:add(114),csm:'David R.',notes:'Home & Kitchen',job:'(WM) AmericanMetalCraft - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69863a8c8f3940f5c55b488b'},
+    {_id:'wm4',t:'wmap-t1',p:'wmap',name:'Nokian',cid:null,freq:null,st:'production',hd:add(116),csm:'David R.',notes:'Automotive',job:null,lnk:null},
+    {_id:'wm5',t:'wmap-t1',p:'wmap',name:'TYR',cid:null,freq:null,st:'production',hd:add(118),csm:'David R.',notes:'Apparel / Sportswear',job:null,lnk:null},
+    {_id:'wm6',t:'wmap-t1',p:'wmap',name:'Corral Boots',cid:null,freq:null,st:'production',hd:add(120),csm:'David R.',notes:'Apparel / Sportswear',job:'(WM) Corral Boots - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69ab5fd1de871104d1fd2dac'},
+    {_id:'wm7',t:'wmap-t1',p:'wmap',name:'Round 2 Corp',cid:null,freq:null,st:'production',hd:add(122),csm:'David R.',notes:'Automotive / Industrial',job:null,lnk:null},
+    {_id:'wm8',t:'wmap-t1',p:'wmap',name:'STI',cid:null,freq:null,st:'production',hd:add(124),csm:'David R.',notes:'Industrial / B2B',job:'(WM) Specified Technologies - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/6991431176f68e44eb2e08a2'},
+    {_id:'wm9',t:'wmap-t1',p:'wmap',name:'New Balance',cid:null,freq:null,st:'production',hd:add(126),csm:'David R.',notes:'Apparel / Sportswear',job:'(WM) New Balance - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/6993444b76f68e44eb2faceb'},
+    {_id:'wm10',t:'wmap-t1',p:'wmap',name:'Nutramax',cid:null,freq:null,st:'production',hd:add(128),csm:'David R.',notes:'Pet Supplies',job:null,lnk:null},
+    {_id:'wm11',t:'wmap-t1',p:'wmap',name:'Hypard',cid:null,freq:null,st:'production',hd:add(130),csm:'David R.',notes:'Apparel / Sportswear',job:'(WM) Hypard - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69863e3ce848ba27197c31a2'},
+    {_id:'wm12',t:'wmap-t1',p:'wmap',name:'EnhancedLaserProducts',cid:null,freq:null,st:'production',hd:add(132),csm:'David R.',notes:'Industrial / B2B',job:'(WM) EnhancedLaserProducts - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/698640018f3940f5c55b495a'},
+    {_id:'wm13',t:'wmap-t1',p:'wmap',name:'Prym MAP',cid:null,freq:null,st:'production',hd:add(134),csm:'David R.',notes:'Pet Supplies',job:'(WM) Prym - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/699157dd76f68e44eb2e1263'},
+    // ── NuMap / CyberAnalyst — Tranche 1 (20 customers) ──
+    {_id:'nm1-0',t:'nm-t1',p:'numap',name:'Rockford Fosgate 5730',cid:null,freq:'Yearly',st:'production',hd:add(85),csm:'Priya N.',notes:'Consumer Electronics > Audio > Automotive',job:null,lnk:null},
+    {_id:'nm1-1',t:'nm-t1',p:'numap',name:'Canon 672 Printer',cid:null,freq:'Weekly or Monthly',st:'production',hd:add(87),csm:'Priya N.',notes:'Consumer Electronics',job:'(CA) Canon672_Printer - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69987342871be482a7af11be'},
+    {_id:'nm1-2',t:'nm-t1',p:'numap',name:'Motorola Solutions Canada',cid:null,freq:'Monthly or Quarterly',st:'production',hd:add(89),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-3',t:'nm-t1',p:'numap',name:'Lexmark 5404',cid:null,freq:'Monthly',st:'production',hd:add(91),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-4',t:'nm-t1',p:'numap',name:'Timex MAP',cid:null,freq:'Half Yearly',st:'production',hd:add(93),csm:'Priya N.',notes:'Consumer Electronics',job:'(CA) Timex - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/699875bf60f6b6b384ce2fbc'},
+    {_id:'nm1-5',t:'nm-t1',p:'numap',name:'QSC 202',cid:null,freq:'Yearly',st:'production',hd:add(95),csm:'Priya N.',notes:'Consumer Electronics > Audio > Pro Systems',job:'(CA) QSC - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69861c578f3940f5c55b33e4'},
+    {_id:'nm1-6',t:'nm-t1',p:'numap',name:'Google Inc Canada',cid:null,freq:'Yearly',st:'production',hd:add(97),csm:'Priya N.',notes:'Consumer Electronics',job:'(CA) Google Canada - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/698e8a0de848ba2719805d24'},
+    {_id:'nm1-7',t:'nm-t1',p:'numap',name:'Sharp B2B 4916',cid:null,freq:'Quarterly',st:'production',hd:add(99),csm:'Priya N.',notes:'Consumer Electronics',job:'(CA) SharpB2B4916 - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/699889333bc48005346786a2'},
+    {_id:'nm1-8',t:'nm-t1',p:'numap',name:'Philips Canada',cid:null,freq:'Monthly',st:'production',hd:add(101),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-9',t:'nm-t1',p:'numap',name:'Google Inc 5573',cid:null,freq:'Yearly',st:'production',hd:add(103),csm:'Priya N.',notes:'Consumer Electronics',job:'(CA) GoogleInc5573 - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/698630511f4ec7bc059889bd'},
+    {_id:'nm1-10',t:'nm-t1',p:'numap',name:'Logitech',cid:null,freq:'Monthly',st:'production',hd:add(105),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-11',t:'nm-t1',p:'numap',name:'Sony Interactive Entertainment',cid:null,freq:'Monthly',st:'production',hd:add(107),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-12',t:'nm-t1',p:'numap',name:'Philips 2025 MAP Program',cid:null,freq:'Weekly',st:'production',hd:add(109),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-13',t:'nm-t1',p:'numap',name:'LG Home Appliances',cid:null,freq:'Weekly',st:'production',hd:add(111),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-14',t:'nm-t1',p:'numap',name:'Philips Domestic Appliances CA',cid:null,freq:'Half yearly',st:'production',hd:add(113),csm:'Priya N.',notes:'Consumer Electronics',job:'(CA) Philips Domestic Appliances CA - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69988f615b101c5eafc46296'},
+    {_id:'nm1-15',t:'nm-t1',p:'numap',name:'LG Electronics UPP',cid:null,freq:'Weekly',st:'production',hd:add(115),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-16',t:'nm-t1',p:'numap',name:'LG Electronics',cid:null,freq:'Weekly',st:'production',hd:add(117),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-17',t:'nm-t1',p:'numap',name:'Canon 672',cid:null,freq:'Weekly or Monthly',st:'production',hd:add(119),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-18',t:'nm-t1',p:'numap',name:'Sony IPSA',cid:null,freq:'Monthly or Quarterly',st:'production',hd:add(121),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    {_id:'nm1-19',t:'nm-t1',p:'numap',name:'Sony Electronics',cid:null,freq:'Weekly',st:'production',hd:add(123),csm:'Priya N.',notes:'Consumer Electronics',job:null,lnk:null},
+    // ── NuMap Tranche 2 (7 customers) ──
+    {_id:'nm2-0',t:'nm-t2',p:'numap',name:'Goodman Canada',cid:null,freq:'Quarterly',st:'production',hd:add(105),csm:'Priya N.',notes:'Heating and Cooling / HVAC',job:null,lnk:null},
+    {_id:'nm2-1',t:'nm-t2',p:'numap',name:'Goodman Turk Bundle MAP',cid:null,freq:'Quarterly',st:'production',hd:add(107),csm:'Priya N.',notes:'Heating and Cooling / HVAC',job:null,lnk:null},
+    {_id:'nm2-2',t:'nm-t2',p:'numap',name:'Philips Domestic Appliances US',cid:null,freq:'Half yearly',st:'production',hd:add(109),csm:'Priya N.',notes:'Domestic Appliances',job:null,lnk:null},
+    {_id:'nm2-3',t:'nm-t2',p:'numap',name:"D'Addario 2421",cid:null,freq:'Monthly',st:'production',hd:add(111),csm:'Priya N.',notes:'Musical Instruments & Pro Audio',job:null,lnk:null},
+    {_id:'nm2-4',t:'nm-t2',p:'numap',name:'Motorola',cid:null,freq:'Monthly or Quarterly',st:'production',hd:add(113),csm:'Priya N.',notes:'Professional Communications Equipment',job:null,lnk:null},
+    {_id:'nm2-5',t:'nm-t2',p:'numap',name:'Philips Lighting',cid:null,freq:'Discontinue',st:'production',hd:add(115),csm:'Priya N.',notes:'Home Improvement > Lighting',job:null,lnk:null},
+    {_id:'nm2-6',t:'nm-t2',p:'numap',name:'Goodman 5223',cid:null,freq:'Quarterly',st:'production',hd:add(117),csm:'Priya N.',notes:'Heating and Cooling / HVAC',job:null,lnk:null},
+    // ── NuMap Tranche 3 (9 customers) ──
+    {_id:'nm3-0',t:'nm-t3',p:'numap',name:'Livon 578',cid:null,freq:'Yearly',st:'production',hd:add(125),csm:'Tom W.',notes:'Health & Beauty > Supplements',job:null,lnk:null},
+    {_id:'nm3-1',t:'nm-t3',p:'numap',name:'Citizen International',cid:null,freq:'Quarterly',st:'production',hd:add(127),csm:'Tom W.',notes:'Accessories > Watches',job:null,lnk:null},
+    {_id:'nm3-2',t:'nm-t3',p:'numap',name:'Steve Madden 5376',cid:null,freq:'Monthly or Quarterly',st:'production',hd:add(129),csm:'Tom W.',notes:'Apparel',job:null,lnk:null},
+    {_id:'nm3-3',t:'nm-t3',p:'numap',name:'Converse Canada',cid:null,freq:'Monthly',st:'production',hd:add(131),csm:'Tom W.',notes:'Apparel',job:null,lnk:null},
+    {_id:'nm3-4',t:'nm-t3',p:'numap',name:'Citizen 4927',cid:null,freq:'Yearly',st:'production',hd:add(133),csm:'Tom W.',notes:'Accessories > Watches',job:null,lnk:null},
+    {_id:'nm3-5',t:'nm-t3',p:'numap',name:'Colgate 2015',cid:null,freq:'Yearly',st:'production',hd:add(135),csm:'Tom W.',notes:'Health & Beauty > Oral Care',job:'(CA) Colgate 2026 - Full Discovery',lnk:'https://orchestration.wiser.com/jobs/69ab633ed5048e1f45819d5d'},
+    {_id:'nm3-6',t:'nm-t3',p:'numap',name:'Bayer MAP',cid:null,freq:'Monthly or Quarterly',st:'production',hd:add(137),csm:'Tom W.',notes:'Health & Beauty > Supplements',job:null,lnk:null},
+    {_id:'nm3-7',t:'nm-t3',p:'numap',name:'Kawasaki Demo 5721',cid:null,freq:'Monthly',st:'production',hd:add(139),csm:'Tom W.',notes:'Automotive',job:null,lnk:null},
+    {_id:'nm3-8',t:'nm-t3',p:'numap',name:'Converse',cid:null,freq:'Half yearly',st:'production',hd:add(141),csm:'Tom W.',notes:'Apparel',job:null,lnk:null},
+  ];
+
+  S.customers=raw.map(c=>({_id:c._id,TrancheId:c.t,Platform:c.p,Title:c.name,CustomerId:c.cid,Frequency:c.freq,Status:c.st,HandoffDate:c.hd,CSM:c.csm,Notes:c.notes,Job:c.job,JobLink:c.lnk}));
+
+  // Build tasks
+  S.tasks=[];
+  const phIdx={'Discovery':0,'Matching':2,'Data quality':3};
+  S.customers.forEach(c=>{
+    const tr=S.tranches.find(x=>x._id===c.TrancheId);
+    const cur=phIdx[tr?.Phase]??0;
+    TASKS.forEach((task,ti)=>{
+      let pct=0;
+      if(c.Status==='churned') pct=0;
+      else if(ti<cur) pct=100;
+      else if(ti===cur) pct=(ti===0&&c.Job)?100:(ti===0?40:30);
+      const d=new Date(t0); d.setDate(d.getDate()+(ti*25)+(c._id.split('').reduce((a,ch)=>a+ch.charCodeAt(0),0)%12));
+      const stepDefs=getStepDefs(c.Platform,task);
+      const steps=stepDefs.map((s,si)=>({label:s,done:si<Math.floor(pct/100*stepDefs.length),comment:''}));
+      S.tasks.push({_id:`tk-${c._id}-${ti}`,CustomerId:c._id,TrancheId:c.TrancheId,Platform:c.Platform,TaskName:task,TaskIndex:ti,Status:pct===100?'Complete':pct>0?'In progress':'Not started',Pct:pct,TargetDate:d.toISOString().split('T')[0],StepsJson:JSON.stringify(steps)});
+    });
+  });
+
+  document.getElementById('last-upd').textContent='Demo mode — Apr 2, 2026';
+  renderAll();
+}
+
+let saveTimer=null;
+function scheduleSave(list,id,fields){if(demo)return;setInd('saving');clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await spPatch(`/lists/${CFG.lists[list]}/items/${id}/fields`,fields);setInd('saved');}catch{setInd('err');}},800);}
+function setInd(s){const el=document.querySelector('.save-ind');if(!el)return;el.className='save-ind '+s;el.textContent=s==='saving'?'Saving…':s==='saved'?'Saved':'Save failed';}
+
+const T0=new Date('2026-04-02');
+function fmt(d){if(!d)return null;return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});}
+function dc(d){if(!d)return '';const diff=(new Date(d)-T0)/864e5;return diff<0?'overdue':diff<14?'soon':'';}
+function pbc(p){return p===100?'#3B6D11':p>0?'#185FA5':'#B4B2A9';}
+function pbar(p,w){return `<div class="pbar-wrap"><div class="pbar" style="width:${w||50}px"><div class="pbar-fill" style="width:${p}%;background:${pbc(p)}"></div></div><span style="font-size:10px;color:var(--text2);min-width:26px">${p}%</span></div>`;}
+function pill(s){const m={Complete:'p-done','In progress':'p-prog','Not started':'p-wait',Disabled:'p-dis',Churned:'p-dis'};return `<span class="pill ${m[s]||'p-wait'}">${s}</span>`;}
+function csmIn(n){return (n||'?').split(' ').map(w=>w[0]).join('').slice(0,2);}
+function csmChip(n){return `<div class="csm-chip"><div class="csm-av">${csmIn(n)}</div>${n}</div>`;}
+function getTasks(cid){return S.tasks.filter(t=>t.CustomerId===cid).sort((a,b)=>a.TaskIndex-b.TaskIndex);}
+function getCusts(tid){return S.customers.filter(c=>c.TrancheId===tid);}
+function custPct(cid){const t=getTasks(cid);return t.length?Math.round(t.reduce((a,x)=>a+x.Pct,0)/t.length):0;}
+function tranchePct(tid){const c=getCusts(tid);return c.length?Math.round(c.reduce((a,x)=>a+custPct(x._id),0)/c.length):0;}
+
+const openT=new Set(),openC=new Set(),openTk=new Set();
+let activeTab='ngpi';
+const tabFilter={ngpi:null,bpa:null,wmap:null,numap:null};
+const tabSearch={ngpi:'',bpa:'',wmap:'',numap:''};
+
+function renderAll(){renderStats();renderTabs();}
+
+function renderTabs(){
+  document.getElementById('main-tabs').innerHTML=TABS.map(t=>`<div class="tab ${t.key===activeTab?'active':''}" onclick="switchTab('${t.key}')">${t.label}<span class="tab-badge">${t.count}</span></div>`).join('');
+  document.getElementById('tab-contents').innerHTML=TABS.map(t=>`<div id="tab-${t.key}" class="tab-content ${t.key===activeTab?'active':''}">${renderPlatform(t.key)}</div>`).join('');
+}
+
+function renderPlatform(plat){
+  const tranches=S.tranches.filter(t=>t.Platform===plat);
+  const q=(tabSearch[plat]||'').toLowerCase();
+  const f=tabFilter[plat];
+  const filtered=tranches.filter(t=>{
+    if(f==='Discovery'&&t.Phase!=='Discovery')return false;
+    if(f==='Matching'&&!t.Phase.toLowerCase().includes('match'))return false;
+    if(f==='At risk'&&!getCusts(t._id).some(c=>(c.Notes||'').toLowerCase().includes('risk')))return false;
+    if(q)return t.Title.toLowerCase().includes(q)||getCusts(t._id).some(c=>c.Title.toLowerCase().includes(q)||(c.CustomerId||'').includes(q));
+    return true;
+  });
+  return `<div class="toolbar">
+    <input type="text" placeholder="Search tranches or customers…" value="${tabSearch[plat]||''}" oninput="doSearch(this,'${plat}')">
+    <button class="fbtn ${f==='Discovery'?'on':''}" onclick="doFilter(this,'${plat}','Discovery')">Discovery</button>
+    <button class="fbtn ${f==='Matching'?'on':''}" onclick="doFilter(this,'${plat}','Matching')">Matching</button>
+    <button class="fbtn ${f==='At risk'?'on':''}" onclick="doFilter(this,'${plat}','At risk')">At risk</button>
+    <span class="save-ind"></span>
+  </div>
+  <div class="tbl">
+    <div class="col-hdr">
+      <div class="hc"></div><div class="hc">Tranche / customer</div><div class="hc ctr">% complete</div>
+      <div class="hc ctr">Discovery</div><div class="hc ctr">Crawl append</div><div class="hc ctr">Matching</div>
+      <div class="hc ctr">Data quality</div><div class="hc ctr">Monitoring</div><div class="hc">Handoff / CSM</div>
+    </div>
+    ${filtered.map(t=>renderTranche(t)).join('')}
+  </div>`;
+}
+
+function renderTranche(tr){
+  const open=openT.has(tr._id);
+  const pct=tranchePct(tr._id);
+  const custs=getCusts(tr._id);
+  const summary=TASKS.map((_,ti)=>{
+    const ps=custs.map(c=>{const tk=getTasks(c._id)[ti];return tk?tk.Pct:0;});
+    const avg=ps.length?Math.round(ps.reduce((a,b)=>a+b,0)/ps.length):0;
+    const d=custs.length?(getTasks(custs[0]._id)[ti]?.TargetDate||null):null;
+    return{avg,d};
+  });
+  return `<div class="row-wrap" id="tr-${tr._id}">
+    <div class="tr-row" onclick="toggleT('${tr._id}')">
+      <div class="tc"><span class="chev ${open?'open':''}" id="cht-${tr._id}">▶</span></div>
+      <div class="tc">
+        <div style="font-weight:500;font-size:12px;display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          ${tr.Title}<span class="badge-cnt">${tr.Customers} customers</span>${tr.Notes?`<span class="note-chip">${tr.Notes}</span>`:''}
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px">Phase: ${tr.Phase} · CSM: ${tr.CSM}</div>
+      </div>
+      <div class="tc">${pbar(pct,55)}</div>
+      ${summary.map(s=>`<div class="tc" style="text-align:center">
+        ${pill(s.avg===100?'Complete':s.avg>0?'In progress':'Not started')}
+        ${s.avg>0&&s.avg<100?`<div style="margin-top:2px;display:flex;justify-content:center">${pbar(s.avg,36)}</div>`:''}
+        ${s.d?`<div class="date-cell ${dc(s.d)}" style="margin-top:2px;text-align:center">${fmt(s.d)}</div>`:''}
+      </div>`).join('')}
+      <div class="tc"><div class="csm-wrap">
+        <div class="date-cell ${dc(tr.GoLive)}">Go-live: ${fmt(tr.GoLive)||'TBD'}</div>
+        ${csmChip(tr.CSM)}
+      </div></div>
+    </div>
+    ${open?`<div class="cust-rows" id="custs-${tr._id}">${custs.map(c=>renderCust(c)).join('')}</div>`:''}
+  </div>`;
+}
+
+function renderCust(c){
+  const open=openC.has(c._id);
+  const pct=custPct(c._id);
+  const tasks=getTasks(c._id);
+  const dis=c.Status==='churned'||c.Status==='disabled';
+  return `<div class="row-wrap" id="cu-${c._id}">
+    <div class="c-row" onclick="toggleC('${c._id}')">
+      <div class="cc"></div>
+      <div class="cc"><span class="chev ${open?'open':''}" id="chc-${c._id}">▶</span></div>
+      <div class="cc">
+        <div style="font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px">
+          ${c.Title}${dis?`<span class="pill p-dis" style="font-size:9px">disabled</span>`:''}
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;margin-top:2px;flex-wrap:wrap">
+          ${c.CustomerId?`<span style="font-size:10px;color:var(--text2)">ID: ${c.CustomerId}</span>`:''}
+          ${c.Frequency?`<span style="font-size:10px;color:var(--text2)">${c.Frequency}</span>`:''}
+          ${c.Notes?`<span class="cat-chip">${c.Notes}</span>`:''}
+        </div>
+      </div>
+      <div class="cc">${pbar(pct,50)}</div>
+      ${tasks.map(tk=>`<div class="cc" style="text-align:center">
+        ${pill(dis?'Disabled':tk.Status)}
+        ${tk.Pct>0&&tk.Pct<100?`<div style="margin-top:2px;display:flex;justify-content:center">${pbar(tk.Pct,34)}</div>`:''}
+      </div>`).join('')}
+      <div class="cc"><div class="csm-wrap">
+        ${c.HandoffDate?`<div class="date-cell ${dc(c.HandoffDate)}">Handoff: ${fmt(c.HandoffDate)}</div>`:''}
+        ${c.CSM?csmChip(c.CSM):''}
+        <input class="inline-edit" value="${c.CSM||''}" placeholder="Assign CSM…"
+          style="font-size:10px;width:100%;margin-top:${c.CSM?'4':'0'}px"
+          onclick="event.stopPropagation()"
+          onblur="updateCSM('${c._id}',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+      </div></div>
+    </div>
+    ${open?`<div class="task-detail-rows" id="tdr-${c._id}">${tasks.map(tk=>renderTaskRow(c,tk)).join('')}</div>`:''}
+  </div>`;
+}
+
+function renderTaskRow(c,tk){
+  const open=openTk.has(tk._id);
+  const steps=JSON.parse(tk.StepsJson||'[]');
+  return `<div class="row-wrap" id="tkr-${tk._id}">
+    <div class="td-row" onclick="toggleTk('${tk._id}')">
+      <div style="padding:6px 4px"></div>
+      <div style="padding:6px 4px"><span class="chev ${open?'open':''}" id="chtk-${tk._id}">▶</span></div>
+      <div style="padding:6px 8px">
+        <div style="font-size:11px;font-weight:500">${tk.TaskName}</div>
+        <div style="margin-top:3px">${pbar(tk.Pct,60)}</div>
+      </div>
+      <div style="padding:6px 8px" onclick="event.stopPropagation()">
+        <select class="pill ${tk.Status==='Complete'?'p-done':tk.Status==='In progress'?'p-prog':'p-wait'} pill-sel" onchange="updateStatus('${tk._id}',this.value)">
+          <option ${tk.Status==='Not started'?'selected':''}>Not started</option>
+          <option ${tk.Status==='In progress'?'selected':''}>In progress</option>
+          <option ${tk.Status==='Complete'?'selected':''}>Complete</option>
+        </select>
+        ${tk.TargetDate?`<div class="date-cell ${dc(tk.TargetDate)}" style="margin-top:2px">${fmt(tk.TargetDate)}</div>`:''}
+      </div>
+      <div style="padding:6px 8px" onclick="event.stopPropagation()">
+        <input type="date" value="${tk.TargetDate||''}" class="date-cell" title="Target date" onchange="updateDate('${tk._id}',this.value)">
+      </div>
+    </div>
+    ${open?renderSteps(c,tk,steps):''}
+  </div>`;
+}
+
+function renderSteps(c,tk,steps){
+  const isTbd=steps.length>0&&steps[0].label.includes('TBD');
+  return `<div class="step-rows" id="steps-${tk._id}">
+    ${isTbd?`<div style="padding:8px 12px 4px 78px;font-size:11px;color:var(--amber-text);background:var(--amber-bg);border-bottom:.5px solid var(--border)">
+      Checklist for this platform is not yet finalized — steps below are placeholders.
+    </div>`:''}
+    ${steps.map((s,si)=>`<div class="step-row">
+      <div style="display:flex;align-items:flex-start">
+        <div class="cbx ${s.done?'done':''}" onclick="${isTbd?'':``toggleStep('${tk._id}',${si})``}"
+          style="${isTbd?'opacity:0.4;cursor:not-allowed;':''}">${s.done?'✓':''}</div>
+      </div>
+      <div>
+        <div class="step-label ${s.done?'done':''}" style="${isTbd?'color:var(--text3);':''}">
+          ${s.label}${isTbd?` <span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:1px 5px;border-radius:3px;vertical-align:middle">TBD</span>`:''}
+        </div>
+        ${!isTbd&&si===1&&c.Job?`<div style="margin-top:3px"><a class="job-link" href="${c.JobLink||'#'}" target="_blank">${c.Job}</a></div>`:''}
+        ${!isTbd?`<div style="margin-top:4px" onclick="event.stopPropagation()">
+          ${s.comment
+            ?`<div class="cmt-display" onclick="editCmt('${tk._id}',${si},\`${s.comment.replace(/`/g,"'")}\`)">${s.comment}</div>`
+            :`<input class="inline-edit" placeholder="Add comment…" style="font-size:10px;color:var(--text2)" onblur="saveCmt('${tk._id}',${si},this.value)" onkeydown="if(event.key==='Enter')this.blur()">`
+          }
+        </div>`:''}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function toggleT(id){openT.has(id)?openT.delete(id):openT.add(id);reTr(id);}
+function toggleC(id){openC.has(id)?openC.delete(id):openC.add(id);reCu(id);}
+function toggleTk(id){openTk.has(id)?openTk.delete(id):openTk.add(id);reTk(id);}
+
+function toggleStep(tkId,si){
+  const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;
+  const steps=JSON.parse(tk.StepsJson||'[]');
+  steps[si].done=!steps[si].done;
+  tk.StepsJson=JSON.stringify(steps);
+  const done=steps.filter(s=>s.done).length;
+  tk.Pct=Math.round(done/steps.length*100);
+  tk.Status=tk.Pct===100?'Complete':tk.Pct>0?'In progress':'Not started';
+  scheduleSave('tasks',tk._id,{StepsJson:tk.StepsJson,Pct:tk.Pct,Status:tk.Status});
+  reTk(tkId);reCu(tk.CustomerId);reTr(tk.TrancheId);renderStats();
+}
+function updateStatus(tkId,val){
+  const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;
+  tk.Status=val;tk.Pct=val==='Complete'?100:val==='In progress'?50:0;
+  scheduleSave('tasks',tk._id,{Status:val,Pct:tk.Pct});
+  reTk(tkId);reCu(tk.CustomerId);reTr(tk.TrancheId);renderStats();
+}
+function updateDate(tkId,val){const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;tk.TargetDate=val;scheduleSave('tasks',tk._id,{TargetDate:val});}
+function updateCSM(cid,val){
+  const c=S.customers.find(x=>x._id===cid);if(!c)return;
+  c.CSM=val.trim();
+  scheduleSave('customers',c._id,{CSM:c.CSM});
+  reCu(cid);
+}
+function saveCmt(tkId,si,val){if(!val.trim())return;const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;const steps=JSON.parse(tk.StepsJson||'[]');steps[si].comment=val.trim();tk.StepsJson=JSON.stringify(steps);scheduleSave('tasks',tk._id,{StepsJson:tk.StepsJson});reTk(tkId);}
+function editCmt(tkId,si,ex){const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;const nv=prompt('Edit comment:',ex);if(nv===null)return;const steps=JSON.parse(tk.StepsJson||'[]');steps[si].comment=nv.trim();tk.StepsJson=JSON.stringify(steps);scheduleSave('tasks',tk._id,{StepsJson:tk.StepsJson});reTk(tkId);}
+
+function reTr(id){const el=document.getElementById('tr-'+id);if(!el)return;const tr=S.tranches.find(x=>x._id===id);if(!tr)return;el.outerHTML=renderTranche(tr);}
+function reCu(id){const el=document.getElementById('cu-'+id);if(!el)return;const c=S.customers.find(x=>x._id===id);if(!c)return;el.outerHTML=renderCust(c);}
+function reTk(id){const el=document.getElementById('tkr-'+id);if(!el)return;const tk=S.tasks.find(t=>t._id===id);if(!tk)return;const c=S.customers.find(x=>x._id===tk.CustomerId);if(!c)return;el.outerHTML=renderTaskRow(c,tk);}
+
+function renderStats(){
+  const pcts=S.customers.map(c=>custPct(c._id));
+  const done=pcts.filter(p=>p===100).length;
+  const inprog=pcts.filter(p=>p>0&&p<100).length;
+  const notstart=pcts.filter(p=>p===0).length;
+  const avg=pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):0;
+  const atRisk=S.customers.filter(c=>(c.Notes||'').toLowerCase().includes('risk')||c.Status==='churned').length;
+  const total=pcts.length;
+  document.getElementById('stat-row').innerHTML=`
+    <div class="stat"><div class="stat-label">Overall progress</div><div class="stat-val">${avg}%</div><div class="stat-sub">across all platforms</div></div>
+    <div class="stat"><div class="stat-label">Customers complete</div><div class="stat-val">${done}</div><div class="stat-sub">of ${total} total</div></div>
+    <div class="stat"><div class="stat-label">In progress</div><div class="stat-val">${inprog}</div><div class="stat-sub">active migrations</div></div>
+    <div class="stat"><div class="stat-label">At risk</div><div class="stat-val">${atRisk}</div><div class="stat-sub">renewal or timeline risk</div></div>`;
+  const dW=Math.round(done/total*100),pW=Math.round(inprog/total*100),nW=100-dW-pW;
+  document.getElementById('pipe-bar').innerHTML=`
+    <div class="pipe-hdr"><span style="font-weight:500;font-size:12px">Migration pipeline — all platforms</span><span style="color:var(--text2)">${avg}% complete</span></div>
+    <div class="bar-track">
+      <div class="bar-seg" style="width:${dW}%;background:#3B6D11"></div>
+      <div class="bar-seg" style="width:${pW}%;background:#185FA5"></div>
+      <div class="bar-seg" style="width:${nW}%;background:#D3D1C7"></div>
+    </div>
+    <div class="leg-row">
+      <div class="leg"><div class="dot" style="background:#3B6D11"></div>Complete (${done})</div>
+      <div class="leg"><div class="dot" style="background:#185FA5"></div>In progress (${inprog})</div>
+      <div class="leg"><div class="dot" style="background:#D3D1C7"></div>Not started (${notstart})</div>
+    </div>`;
+}
+
+function doSearch(el,plat){tabSearch[plat]=el.value;reTab(plat);}
+function doFilter(btn,plat,f){const isOn=btn.classList.contains('on');btn.closest('.toolbar').querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));tabFilter[plat]=isOn?null:f;if(!isOn)btn.classList.add('on');reTab(plat);}
+function switchTab(key){activeTab=key;renderTabs();}
+function reTab(plat){const el=document.getElementById('tab-'+plat);if(el)el.innerHTML=renderPlatform(plat);}
+</script>
+</body>
+</html>
