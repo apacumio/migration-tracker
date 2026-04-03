@@ -572,7 +572,7 @@ function renderSteps(c,tk,steps){
     </div>`:''}
     ${steps.map((s,si)=>`<div class="step-row">
       <div style="display:flex;align-items:flex-start">
-        <div class="cbx ${s.done?'done':''}" onclick="${isTbd?'':``toggleStep('${tk._id}',${si})``}"
+        <div class="cbx ${s.done?'done':''}" onclick="${isTbd ? '' : `toggleStep('${tk._id}',${si})`}"
           style="${isTbd?'opacity:0.4;cursor:not-allowed;':''}">${s.done?'✓':''}</div>
       </div>
       <div>
