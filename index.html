@@ -555,30 +555,39 @@ function renderTaskRow(c,tk){
 }
 
 function renderSteps(c,tk,steps){
-  const isTbd=steps.length>0&&steps[0].label.includes('TBD');
-  return `<div class="step-rows" id="steps-${tk._id}">
-    ${isTbd?`<div style="padding:8px 12px 4px 78px;font-size:11px;color:var(--amber-text);background:var(--amber-bg);border-bottom:.5px solid var(--border)">
-      Checklist for this platform is not yet finalized — steps below are placeholders.
-    </div>`:''}
-    ${steps.map((s,si)=>`<div class="step-row">
-      <div style="display:flex;align-items:flex-start">
-        <div class="cbx ${s.done?'done':''}" onclick="${isTbd?'':``toggleStep('${tk._id}',${si})``}"
-          style="${isTbd?'opacity:0.4;cursor:not-allowed;':''}">${s.done?'✓':''}</div>
-      </div>
-      <div>
-        <div class="step-label ${s.done?'done':''}" style="${isTbd?'color:var(--text3);':''}">
-          ${s.label}${isTbd?` <span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:1px 5px;border-radius:3px;vertical-align:middle">TBD</span>`:''}
-        </div>
-        ${!isTbd&&si===1&&c.Job?`<div style="margin-top:3px"><a class="job-link" href="${c.JobLink||'#'}" target="_blank">${c.Job}</a></div>`:''}
-        ${!isTbd?`<div style="margin-top:4px" onclick="event.stopPropagation()">
-          ${s.comment
-            ?`<div class="cmt-display" onclick="editCmt('${tk._id}',${si},\`${s.comment.replace(/`/g,"'")}\`)">${s.comment}</div>`
-            :`<input class="inline-edit" placeholder="Add comment…" style="font-size:10px;color:var(--text2)" onblur="saveCmt('${tk._id}',${si},this.value)" onkeydown="if(event.key==='Enter')this.blur()">`
-          }
-        </div>`:''}
-      </div>
-    </div>`).join('')}
-  </div>`;
+  const isTbd = steps.length>0 && steps[0].label.includes('TBD');
+  const tbdBanner = isTbd
+    ? '<div style="padding:8px 12px 4px 78px;font-size:11px;color:var(--amber-text);background:var(--amber-bg);border-bottom:.5px solid var(--border)">Checklist not yet finalized — steps are placeholders.</div>'
+    : '';
+  const rows = steps.map(function(s,si){
+    const cbxClass = 'cbx' + (s.done?' done':'');
+    const onclick = isTbd ? '' : 'toggleStep("'+tk._id+'",'+si+')';
+    const cbxStyle = isTbd ? 'opacity:0.4;cursor:not-allowed;' : '';
+    const checkmark = s.done ? '&#10003;' : '';
+    const labelStyle = isTbd ? 'color:var(--text3);' : '';
+    const tbdTag = isTbd ? ' <span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:1px 5px;border-radius:3px;vertical-align:middle">TBD</span>' : '';
+    const jobLink = (!isTbd && si===1 && c.Job)
+      ? '<div style="margin-top:3px"><a class="job-link" href="'+(c.JobLink||'#')+'" target="_blank">'+c.Job+'</a></div>'
+      : '';
+    const commentHtml = !isTbd
+      ? '<div style="margin-top:4px" onclick="event.stopPropagation()">'
+          + (s.comment
+            ? '<div class="cmt-display" onclick="editCmt(\''+tk._id+'\','+si+',this.parentNode.dataset.cmt);" data-cmt="'+s.comment.replace(/"/g,'&quot;')+'">'+s.comment+'</div>'
+            : '<input class="inline-edit" placeholder="Add comment\u2026" style="font-size:10px;color:var(--text2)" onblur="saveCmt(\''+tk._id+'\','+si+',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">')
+          + '</div>'
+      : '';
+    return '<div class="step-row">'
+      + '<div style="display:flex;align-items:flex-start">'
+      +   '<div class="'+cbxClass+'" onclick="'+onclick+'" style="'+cbxStyle+'">'+checkmark+'</div>'
+      + '</div>'
+      + '<div>'
+      +   '<div class="step-label'+(s.done?' done':'')+'" style="'+labelStyle+'">'+s.label+tbdTag+'</div>'
+      +   jobLink
+      +   commentHtml
+      + '</div>'
+      + '</div>';
+  });
+  return '<div class="step-rows" id="steps-'+tk._id+'">'+tbdBanner+rows.join('')+'</div>';
 }
 
 function toggleT(id){openT.has(id)?openT.delete(id):openT.add(id);reTr(id);}
