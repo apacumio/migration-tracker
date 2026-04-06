@@ -4,25 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Migration Tracker</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/msal.js/2.38.3/msal-browser.min.js"></script>
+
 <style>
 :root{--bg:#fff;--bg2:#f7f7f5;--bg3:#f0efe9;--text:#1a1a18;--text2:#6b6b67;--text3:#9d9d98;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--blue-bg:#E6F1FB;--blue-text:#0C447C;--blue-bd:#85B7EB;--green-bg:#EAF3DE;--green-text:#3B6D11;--amber-bg:#FAEEDA;--amber-text:#633806;--red-bg:#FCEBEB;--red-text:#A32D2D;--gray-bg:#F1EFE8;--gray-text:#5F5E5A;--r:8px;--rl:12px}
 @media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--text:#f0efe9;--text2:#a0a09a;--text3:#6b6b67;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);--blue-bg:#0C447C;--blue-text:#B5D4F4;--green-bg:#27500A;--green-text:#C0DD97;--amber-bg:#633806;--amber-text:#FAC775;--red-bg:#791F1F;--red-text:#F7C1C1;--gray-bg:#444441;--gray-text:#D3D1C7}}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg)}
-#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px}
-#auth-screen h1{font-size:22px;font-weight:500}
-#auth-screen p{color:var(--text2);font-size:13px}
-.ms-btn{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#0078d4;color:#fff;border:none;border-radius:var(--r);font-size:14px;cursor:pointer;font-weight:500}
-.ms-btn:hover{background:#106ebe}
-#app{display:none;max-width:1400px;margin:0 auto;padding:20px 16px 40px}
+#app{max-width:1400px;margin:0 auto;padding:20px 16px 40px}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .topbar h1{font-size:18px;font-weight:500}
 .topbar p{font-size:12px;color:var(--text2);margin-top:2px}
-.user-chip{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
-.u-av{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center}
-.sign-out{font-size:11px;color:var(--text3);cursor:pointer;background:none;border:none;text-decoration:underline}
-.demo-banner{background:var(--amber-bg);color:var(--amber-text);font-size:12px;padding:8px 14px;border-radius:var(--r);margin-bottom:14px}
 .stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .stat{background:var(--bg2);border-radius:var(--r);padding:10px 12px}
 .stat-label{font-size:11px;color:var(--text2);margin-bottom:3px}
@@ -100,24 +91,11 @@ select.csm-sel{font-size:10px;background:var(--bg2);border:.5px solid var(--bord
 </head>
 <body>
 
-<div id="auth-screen">
-  <svg viewBox="0 0 23 23" style="width:48px;height:48px"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-  <h1>Migration Tracker</h1>
-  <p>Sign in with your Microsoft 365 account to continue</p>
-  <button class="ms-btn" onclick="signIn()">
-    <svg viewBox="0 0 23 23" style="width:20px;height:20px"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-    Sign in with Microsoft
-  </button>
-  <p id="auth-err" style="color:var(--red-text);font-size:12px;display:none"></p>
-  <button onclick="loadDemo()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;margin-top:8px">Preview with demo data (no sign-in)</button>
-</div>
-
-<div id="app">
+<div id="app" style="max-width:1400px;margin:0 auto;padding:20px 16px 40px">
   <div class="topbar">
     <div><h1>Migration tracker</h1><p id="last-upd">Loading…</p></div>
-    <div class="user-chip"><div class="u-av" id="u-init">?</div><span id="u-name"></span><button class="sign-out" onclick="signOut()">Sign out</button></div>
+    <div style="font-size:12px;color:var(--text2)">Last saved: <span id="save-time">—</span></div>
   </div>
-  <div id="demo-banner" class="demo-banner" style="display:none">Preview mode — changes won't be saved. <a href="#" onclick="showAuth()" style="color:var(--amber-text)">Sign in to save.</a></div>
   <div class="stat-row" id="stat-row"></div>
   <div class="pipe-wrap" id="pipe-bar"></div>
   <div class="tabs" id="main-tabs"></div>
@@ -125,8 +103,7 @@ select.csm-sel{font-size:10px;background:var(--bg2);border:.5px solid var(--bord
 </div>
 
 <script>
-const CFG={clientId:'YOUR_AZURE_APP_CLIENT_ID',tenantId:'YOUR_AZURE_TENANT_ID',siteId:'YOUR_SHAREPOINT_SITE_ID',lists:{tranches:'YOUR_TRANCHES_LIST_ID',customers:'YOUR_CUSTOMERS_LIST_ID',tasks:'YOUR_TASKS_LIST_ID'}};
-const SCOPES=['Sites.ReadWrite.All','User.Read'];
+const CFG={siteId:'YOUR_SHAREPOINT_SITE_ID',apiKey:'YOUR_SHAREPOINT_API_KEY',lists:{tranches:'YOUR_TRANCHES_LIST_ID',customers:'YOUR_CUSTOMERS_LIST_ID',tasks:'YOUR_TASKS_LIST_ID'}};
 const TASKS=['Discovery','Crawl append','Matching','Data quality','Monitoring'];
 
 // ── Per-platform checklist templates ──────────────────────────────────────
@@ -170,25 +147,22 @@ function getStepDefs(platform,taskName){
 
 const TABS=[{key:'ngpi',label:'NGPI',count:90},{key:'bpa',label:'BPA',count:82},{key:'wmap',label:'Wiser MAP',count:14},{key:'numap',label:'NuMap',count:36}];
 
-let msal_,token_,user_,demo=false;
-function initMsal(){msal_=new msal.PublicClientApplication({auth:{clientId:CFG.clientId,authority:`https://login.microsoftonline.com/${CFG.tenantId}`,redirectUri:location.href},cache:{cacheLocation:'sessionStorage'}});}
-async function signIn(){try{initMsal();const r=await msal_.loginPopup({scopes:SCOPES});user_=r.account;token_=await getToken();showApp();await loadAll();}catch(e){document.getElementById('auth-err').textContent='Sign-in failed: '+e.message;document.getElementById('auth-err').style.display='block';}}
-async function getToken(){const a=msal_.getAllAccounts();if(!a.length)return null;try{return(await msal_.acquireTokenSilent({scopes:SCOPES,account:a[0]})).accessToken;}catch{return(await msal_.acquireTokenPopup({scopes:SCOPES})).accessToken;}}
-function signOut(){if(!demo)msal_.logoutPopup();showAuth();}
-function showApp(){document.getElementById('auth-screen').style.display='none';document.getElementById('app').style.display='block';if(user_){const n=user_.name||user_.username;document.getElementById('u-init').textContent=n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();document.getElementById('u-name').textContent=n;}}
-function showAuth(){document.getElementById('auth-screen').style.display='flex';document.getElementById('app').style.display='none';}
-
-const gUrl=p=>`https://graph.microsoft.com/v1.0/sites/${CFG.siteId}${p}`;
-const gH=()=>({Authorization:`Bearer ${token_}`,'Content-Type':'application/json'});
-async function spGet(p){const r=await fetch(gUrl(p),{headers:gH()});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function spPatch(p,b){const r=await fetch(gUrl(p),{method:'PATCH',headers:gH(),body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
-
 let S={tranches:[],customers:[],tasks:[]};
-async function loadAll(){document.getElementById('last-upd').textContent='Loading…';try{const[tr,cu,ta]=await Promise.all([spGet(`/lists/${CFG.lists.tranches}/items?expand=fields&$top=500`),spGet(`/lists/${CFG.lists.customers}/items?expand=fields&$top=1000`),spGet(`/lists/${CFG.lists.tasks}/items?expand=fields&$top=5000`)]);S.tranches=tr.value.map(i=>({...i.fields,_id:i.id}));S.customers=cu.value.map(i=>({...i.fields,_id:i.id}));S.tasks=ta.value.map(i=>({...i.fields,_id:i.id}));document.getElementById('last-upd').textContent='Last updated '+new Date().toLocaleTimeString();renderAll();}catch(e){document.getElementById('last-upd').textContent='Error — check console';console.error(e);}}
+
+// ── SharePoint read/write (no auth — uses list's public share permissions) ──
+// When connected to real SharePoint, replace these with your actual API calls.
+// See SETUP.md for the SharePoint REST API approach (no login required).
+async function spGet(listId){
+  const r=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.siteId}/lists/${listId}/items?expand=fields&$top=1000`,{headers:{'Content-Type':'application/json'}});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function spPatch(listId,itemId,fields){
+  const r=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.siteId}/lists/${listId}/items/${itemId}/fields`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(fields)});
+  if(!r.ok) throw new Error(await r.text());
+}
 
 function loadDemo(){
-  demo=true;user_={name:'Demo User'};showApp();
-  document.getElementById('demo-banner').style.display='block';
   const t0=new Date('2026-04-02');
   const add=d=>{const r=new Date(t0);r.setDate(r.getDate()+d);return r.toISOString().split('T')[0];};
 
@@ -404,13 +378,29 @@ function loadDemo(){
     });
   });
 
-  document.getElementById('last-upd').textContent='Demo mode — Apr 2, 2026';
+  document.getElementById('last-upd').textContent='Apr 2, 2026';
   renderAll();
 }
 
 let saveTimer=null;
-function scheduleSave(list,id,fields){if(demo)return;setInd('saving');clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await spPatch(`/lists/${CFG.lists[list]}/items/${id}/fields`,fields);setInd('saved');}catch{setInd('err');}},800);}
-function setInd(s){const el=document.querySelector('.save-ind');if(!el)return;el.className='save-ind '+s;el.textContent=s==='saving'?'Saving…':s==='saved'?'Saved':'Save failed';}
+function scheduleSave(list,id,fields){
+  setInd('saving');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{
+      await spPatch(CFG.lists[list],id,fields);
+      setInd('saved');
+    }catch{
+      setInd('err');
+    }
+  },800);
+}
+function setInd(s){
+  const el=document.querySelector('.save-ind');
+  const st=document.getElementById('save-time');
+  if(el){el.className='save-ind '+s;el.textContent=s==='saving'?'Saving…':s==='saved'?'Saved':'Save failed';}
+  if(s==='saved'&&st) st.textContent=new Date().toLocaleTimeString();
+}
 
 const T0=new Date('2026-04-02');
 function fmt(d){if(!d)return null;return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});}
@@ -572,7 +562,7 @@ function renderSteps(c,tk,steps){
     </div>`:''}
     ${steps.map((s,si)=>`<div class="step-row">
       <div style="display:flex;align-items:flex-start">
-        <div class="cbx ${s.done?'done':''}" onclick="${isTbd ? '' : `toggleStep('${tk._id}',${si})`}"
+        <div class="cbx ${s.done?'done':''}" onclick="${isTbd?'':``toggleStep('${tk._id}',${si})``}"
           style="${isTbd?'opacity:0.4;cursor:not-allowed;':''}">${s.done?'✓':''}</div>
       </div>
       <div>
@@ -658,6 +648,9 @@ function doSearch(el,plat){tabSearch[plat]=el.value;reTab(plat);}
 function doFilter(btn,plat,f){const isOn=btn.classList.contains('on');btn.closest('.toolbar').querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));tabFilter[plat]=isOn?null:f;if(!isOn)btn.classList.add('on');reTab(plat);}
 function switchTab(key){activeTab=key;renderTabs();}
 function reTab(plat){const el=document.getElementById('tab-'+plat);if(el)el.innerHTML=renderPlatform(plat);}
+
+// Auto-load on page open — no login required
+loadDemo();
 </script>
 </body>
 </html>
