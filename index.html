@@ -79,7 +79,6 @@ input[type=date]:focus{outline:none;color:var(--text)}
 .csm-wrap{display:flex;flex-direction:column;gap:4px}
 .csm-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;background:var(--bg2);padding:2px 7px;border-radius:10px;color:var(--text2)}
 .csm-av{width:16px;height:16px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-select.csm-sel{font-size:10px;background:var(--bg2);border:.5px solid var(--border);border-radius:10px;padding:2px 6px;color:var(--text2);cursor:pointer}
 .inline-edit{background:transparent;border:none;border-bottom:1px solid var(--border2);font-size:11px;color:var(--text);width:100%;outline:none}
 .inline-edit:focus{border-bottom-color:#0078d4}
 .cmt-display{font-size:11px;color:var(--text2);background:var(--bg2);padding:3px 8px;border-radius:var(--r);margin-top:3px;cursor:pointer}
@@ -89,6 +88,7 @@ select.csm-sel{font-size:10px;background:var(--bg2);border:.5px solid var(--bord
 </style>
 </head>
 <body>
+
 <div id="app" style="max-width:1400px;margin:0 auto;padding:20px 16px 40px">
   <div class="topbar">
     <div><h1>Migration tracker</h1><p id="last-upd">Loading…</p></div>
@@ -100,14 +100,13 @@ select.csm-sel{font-size:10px;background:var(--bg2);border:.5px solid var(--bord
   <div id="tab-contents"></div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════
-     DATA FILES — edit these to update customers, tranches, and checklists
-     ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Edit checklists.js to update step definitions per platform -->
+<!-- Edit data.js to add/edit customers and tranches              -->
 <script src="checklists.js"></script>
 <script src="data.js"></script>
 
-<!-- App logic — no need to edit this file for data changes -->
 <script>
+// ── Constants ────────────────────────────────────────────────────────────────
 const TASKS = ['Discovery','Crawl append','Matching','Data quality','Monitoring'];
 const TABS  = [
   {key:'ngpi', label:'NGPI',      count:90},
@@ -116,71 +115,69 @@ const TABS  = [
   {key:'numap',label:'NuMap',     count:36}
 ];
 
+// ── State ────────────────────────────────────────────────────────────────────
 let S = {tranches:[], customers:[], tasks:[]};
 
-// Save stubs — currently saves to memory only.
-// To connect SharePoint: replace scheduleSave with a fetch() PATCH call.
+// ── Save (memory only — "Saved" confirms UI update, not persistence) ─────────
+// To wire up SharePoint later: replace the body of doSave() with a fetch PATCH.
 let saveTimer = null;
 function scheduleSave(list, id, fields) {
   setInd('saving');
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { setInd('saved'); }, 400);
+  saveTimer = setTimeout(function() { setInd('saved'); }, 400);
 }
 function setInd(s) {
-  const el = document.querySelector('.save-ind');
-  const st = document.getElementById('save-time');
-  if (el) { el.className='save-ind '+s; el.textContent = s==='saving'?'Saving…':s==='saved'?'Saved':'Save failed'; }
-  if (s==='saved' && st) st.textContent = new Date().toLocaleTimeString();
+  var el = document.querySelector('.save-ind');
+  var st = document.getElementById('save-time');
+  if (el) { el.className = 'save-ind ' + s; el.textContent = s==='saving'?'Saving…':s==='saved'?'Saved':'Save failed'; }
+  if (s === 'saved' && st) st.textContent = new Date().toLocaleTimeString();
 }
 
-// ── Bootstrap: build STATE from data.js + checklists.js ──────────────────
+// ── Bootstrap ────────────────────────────────────────────────────────────────
 function loadDemo() {
-  // Build tranches from data.js
   S.tranches = TRANCHES;
 
-  // Build customers from data.js (normalise field names)
-  S.customers = CUSTOMERS_RAW.map(c => ({
-    _id:        c._id,
-    TrancheId:  c.t,
-    Platform:   c.p,
-    Title:      c.name,
-    CustomerId: c.cid  || null,
-    Frequency:  c.freq || null,
-    Status:     c.st,
-    HandoffDate:c.hd   || null,
-    CSM:        c.csm,
-    Notes:      c.notes|| null,
-    Job:        c.job  || null,
-    JobLink:    c.lnk  || null
-  }));
+  S.customers = CUSTOMERS_RAW.map(function(c) {
+    return {
+      _id:         c._id,
+      TrancheId:   c.t,
+      Platform:    c.p,
+      Title:       c.name,
+      CustomerId:  c.cid  || null,
+      Frequency:   c.freq || null,
+      Status:      c.st,
+      HandoffDate: c.hd   || null,
+      CSM:         c.csm,
+      Notes:       c.notes || null,
+      Job:         c.job  || null,
+      JobLink:     c.lnk  || null
+    };
+  });
 
-  // Build tasks from phase + checklists.js
   S.tasks = [];
-  const phaseIdx = {'Discovery':0,'Matching':2,'Data quality':3};
-  S.customers.forEach(c => {
-    const tr  = S.tranches.find(x => x._id === c.TrancheId);
-    const cur = phaseIdx[tr?.Phase] ?? 0;
-    TASKS.forEach((task, ti) => {
-      let pct = 0;
-      if (c.Status === 'churned') pct = 0;
-      else if (ti < cur)  pct = 100;
-      else if (ti === cur) pct = (ti===0 && c.Job) ? 100 : (ti===0 ? 40 : 30);
-      const baseDate = new Date('2026-04-02');
-      baseDate.setDate(baseDate.getDate() + ti*25 + (c._id.split('').reduce((a,ch)=>a+ch.charCodeAt(0),0) % 12));
-      const stepDefs = getStepDefs(c.Platform, task);
-      const steps = stepDefs.map((s,si) => ({
-        label: s,
-        done:  si < Math.floor(pct/100 * stepDefs.length),
-        comment: ''
-      }));
+  var phaseIdx = {Discovery:0, Matching:2, 'Data quality':3};
+  S.customers.forEach(function(c) {
+    var tr  = S.tranches.find(function(x) { return x._id === c.TrancheId; });
+    var cur = (phaseIdx[tr && tr.Phase] !== undefined) ? phaseIdx[tr.Phase] : 0;
+    TASKS.forEach(function(task, ti) {
+      var pct = 0;
+      if (c.Status === 'churned')   pct = 0;
+      else if (ti < cur)            pct = 100;
+      else if (ti === cur)          pct = (ti === 0 && c.Job) ? 100 : (ti === 0 ? 40 : 30);
+      var baseDate = new Date('2026-04-02');
+      baseDate.setDate(baseDate.getDate() + ti * 25 + (c._id.split('').reduce(function(a,ch){return a+ch.charCodeAt(0);},0) % 12));
+      var stepDefs = getStepDefs(c.Platform, task);
+      var steps = stepDefs.map(function(s, si) {
+        return { label: s, done: si < Math.floor(pct / 100 * stepDefs.length), comment: '' };
+      });
       S.tasks.push({
-        _id:        'tk-'+c._id+'-'+ti,
+        _id:         'tk-' + c._id + '-' + ti,
         CustomerId:  c._id,
         TrancheId:   c.TrancheId,
         Platform:    c.Platform,
         TaskName:    task,
         TaskIndex:   ti,
-        Status:      pct===100?'Complete':pct>0?'In progress':'Not started',
+        Status:      pct === 100 ? 'Complete' : pct > 0 ? 'In progress' : 'Not started',
         Pct:         pct,
         TargetDate:  baseDate.toISOString().split('T')[0],
         StepsJson:   JSON.stringify(steps)
@@ -192,283 +189,264 @@ function loadDemo() {
   renderAll();
 }
 
-let saveTimer=null;
-function scheduleSave(list,id,fields){
-  setInd('saving');
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{
-    try{
-      await spPatch(CFG.lists[list],id,fields);
-      setInd('saved');
-    }catch{
-      setInd('err');
-    }
-  },800);
-}
-function setInd(s){
-  const el=document.querySelector('.save-ind');
-  const st=document.getElementById('save-time');
-  if(el){el.className='save-ind '+s;el.textContent=s==='saving'?'Saving…':s==='saved'?'Saved':'Save failed';}
-  if(s==='saved'&&st) st.textContent=new Date().toLocaleTimeString();
-}
+// ── Helpers ───────────────────────────────────────────────────────────────────
+var T0 = new Date('2026-04-02');
+function fmt(d) { if (!d) return null; return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
+function dc(d)  { if (!d) return ''; var diff=(new Date(d)-T0)/864e5; return diff<0?'overdue':diff<14?'soon':''; }
+function pbc(p) { return p===100?'#3B6D11':p>0?'#185FA5':'#B4B2A9'; }
+function pbar(p,w) { return '<div class="pbar-wrap"><div class="pbar" style="width:'+(w||50)+'px"><div class="pbar-fill" style="width:'+p+'%;background:'+pbc(p)+'"></div></div><span style="font-size:10px;color:var(--text2);min-width:26px">'+p+'%</span></div>'; }
+function pill(s) { var m={Complete:'p-done','In progress':'p-prog','Not started':'p-wait',Disabled:'p-dis',Churned:'p-dis'}; return '<span class="pill '+(m[s]||'p-wait')+'">'+s+'</span>'; }
+function csmIn(n) { return (n||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2); }
+function csmChip(n) { return '<div class="csm-chip"><div class="csm-av">'+csmIn(n)+'</div>'+n+'</div>'; }
+function getTasks(cid) { return S.tasks.filter(function(t){return t.CustomerId===cid;}).sort(function(a,b){return a.TaskIndex-b.TaskIndex;}); }
+function getCusts(tid) { return S.customers.filter(function(c){return c.TrancheId===tid;}); }
+function custPct(cid)  { var t=getTasks(cid); return t.length?Math.round(t.reduce(function(a,x){return a+x.Pct;},0)/t.length):0; }
+function tranchePct(tid) { var c=getCusts(tid); return c.length?Math.round(c.reduce(function(a,x){return a+custPct(x._id);},0)/c.length):0; }
 
-const T0=new Date('2026-04-02');
-function fmt(d){if(!d)return null;return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});}
-function dc(d){if(!d)return '';const diff=(new Date(d)-T0)/864e5;return diff<0?'overdue':diff<14?'soon':'';}
-function pbc(p){return p===100?'#3B6D11':p>0?'#185FA5':'#B4B2A9';}
-function pbar(p,w){return `<div class="pbar-wrap"><div class="pbar" style="width:${w||50}px"><div class="pbar-fill" style="width:${p}%;background:${pbc(p)}"></div></div><span style="font-size:10px;color:var(--text2);min-width:26px">${p}%</span></div>`;}
-function pill(s){const m={Complete:'p-done','In progress':'p-prog','Not started':'p-wait',Disabled:'p-dis',Churned:'p-dis'};return `<span class="pill ${m[s]||'p-wait'}">${s}</span>`;}
-function csmIn(n){return (n||'?').split(' ').map(w=>w[0]).join('').slice(0,2);}
-function csmChip(n){return `<div class="csm-chip"><div class="csm-av">${csmIn(n)}</div>${n}</div>`;}
-function getTasks(cid){return S.tasks.filter(t=>t.CustomerId===cid).sort((a,b)=>a.TaskIndex-b.TaskIndex);}
-function getCusts(tid){return S.customers.filter(c=>c.TrancheId===tid);}
-function custPct(cid){const t=getTasks(cid);return t.length?Math.round(t.reduce((a,x)=>a+x.Pct,0)/t.length):0;}
-function tranchePct(tid){const c=getCusts(tid);return c.length?Math.round(c.reduce((a,x)=>a+custPct(x._id),0)/c.length):0;}
+// ── UI state ──────────────────────────────────────────────────────────────────
+var openT=new Set(), openC=new Set(), openTk=new Set();
+var activeTab='ngpi';
+var tabFilter={ngpi:null,bpa:null,wmap:null,numap:null};
+var tabSearch={ngpi:'',bpa:'',wmap:'',numap:''};
 
-const openT=new Set(),openC=new Set(),openTk=new Set();
-let activeTab='ngpi';
-const tabFilter={ngpi:null,bpa:null,wmap:null,numap:null};
-const tabSearch={ngpi:'',bpa:'',wmap:'',numap:''};
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() { renderStats(); renderTabs(); }
 
-function renderAll(){renderStats();renderTabs();}
-
-function renderTabs(){
-  document.getElementById('main-tabs').innerHTML=TABS.map(t=>`<div class="tab ${t.key===activeTab?'active':''}" onclick="switchTab('${t.key}')">${t.label}<span class="tab-badge">${t.count}</span></div>`).join('');
-  document.getElementById('tab-contents').innerHTML=TABS.map(t=>`<div id="tab-${t.key}" class="tab-content ${t.key===activeTab?'active':''}">${renderPlatform(t.key)}</div>`).join('');
+function renderTabs() {
+  document.getElementById('main-tabs').innerHTML = TABS.map(function(t) {
+    return '<div class="tab '+(t.key===activeTab?'active':'')+'" onclick="switchTab(\''+t.key+'\')">'+t.label+'<span class="tab-badge">'+t.count+'</span></div>';
+  }).join('');
+  document.getElementById('tab-contents').innerHTML = TABS.map(function(t) {
+    return '<div id="tab-'+t.key+'" class="tab-content '+(t.key===activeTab?'active':'')+'">'+renderPlatform(t.key)+'</div>';
+  }).join('');
 }
 
-function renderPlatform(plat){
-  const tranches=S.tranches.filter(t=>t.Platform===plat);
-  const q=(tabSearch[plat]||'').toLowerCase();
-  const f=tabFilter[plat];
-  const filtered=tranches.filter(t=>{
-    if(f==='Discovery'&&t.Phase!=='Discovery')return false;
-    if(f==='Matching'&&!t.Phase.toLowerCase().includes('match'))return false;
-    if(f==='At risk'&&!getCusts(t._id).some(c=>(c.Notes||'').toLowerCase().includes('risk')))return false;
-    if(q)return t.Title.toLowerCase().includes(q)||getCusts(t._id).some(c=>c.Title.toLowerCase().includes(q)||(c.CustomerId||'').includes(q));
+function renderPlatform(plat) {
+  var tranches = S.tranches.filter(function(t){return t.Platform===plat;});
+  var q = (tabSearch[plat]||'').toLowerCase();
+  var f = tabFilter[plat];
+  var filtered = tranches.filter(function(t) {
+    if (f==='Discovery' && t.Phase!=='Discovery') return false;
+    if (f==='Matching'  && t.Phase.toLowerCase().indexOf('match')<0) return false;
+    if (f==='At risk'   && !getCusts(t._id).some(function(c){return (c.Notes||'').toLowerCase().indexOf('risk')>=0;})) return false;
+    if (q) return t.Title.toLowerCase().indexOf(q)>=0 || getCusts(t._id).some(function(c){return c.Title.toLowerCase().indexOf(q)>=0||(c.CustomerId||'').indexOf(q)>=0;});
     return true;
   });
-  return `<div class="toolbar">
-    <input type="text" placeholder="Search tranches or customers…" value="${tabSearch[plat]||''}" oninput="doSearch(this,'${plat}')">
-    <button class="fbtn ${f==='Discovery'?'on':''}" onclick="doFilter(this,'${plat}','Discovery')">Discovery</button>
-    <button class="fbtn ${f==='Matching'?'on':''}" onclick="doFilter(this,'${plat}','Matching')">Matching</button>
-    <button class="fbtn ${f==='At risk'?'on':''}" onclick="doFilter(this,'${plat}','At risk')">At risk</button>
-    <span class="save-ind"></span>
-  </div>
-  <div class="tbl">
-    <div class="col-hdr">
-      <div class="hc"></div><div class="hc">Tranche / customer</div><div class="hc ctr">% complete</div>
-      <div class="hc ctr">Discovery</div><div class="hc ctr">Crawl append</div><div class="hc ctr">Matching</div>
-      <div class="hc ctr">Data quality</div><div class="hc ctr">Monitoring</div><div class="hc">Handoff / CSM</div>
-    </div>
-    ${filtered.map(t=>renderTranche(t)).join('')}
-  </div>`;
+  var rows = filtered.map(function(t){return renderTranche(t);}).join('');
+  return '<div class="toolbar">'
+    + '<input type="text" placeholder="Search tranches or customers\u2026" value="'+(tabSearch[plat]||'')+'" oninput="doSearch(this,\''+plat+'\')">'
+    + '<button class="fbtn '+(f==='Discovery'?'on':'')+'" onclick="doFilter(this,\''+plat+'\',\'Discovery\')">Discovery</button>'
+    + '<button class="fbtn '+(f==='Matching'?'on':'')+'" onclick="doFilter(this,\''+plat+'\',\'Matching\')">Matching</button>'
+    + '<button class="fbtn '+(f==='At risk'?'on':'')+'" onclick="doFilter(this,\''+plat+'\',\'At risk\')">At risk</button>'
+    + '<span class="save-ind"></span></div>'
+    + '<div class="tbl">'
+    + '<div class="col-hdr"><div class="hc"></div><div class="hc">Tranche / customer</div><div class="hc ctr">% complete</div>'
+    + '<div class="hc ctr">Discovery</div><div class="hc ctr">Crawl append</div><div class="hc ctr">Matching</div>'
+    + '<div class="hc ctr">Data quality</div><div class="hc ctr">Monitoring</div><div class="hc">Handoff / CSM</div></div>'
+    + rows + '</div>';
 }
 
-function renderTranche(tr){
-  const open=openT.has(tr._id);
-  const pct=tranchePct(tr._id);
-  const custs=getCusts(tr._id);
-  const summary=TASKS.map((_,ti)=>{
-    const ps=custs.map(c=>{const tk=getTasks(c._id)[ti];return tk?tk.Pct:0;});
-    const avg=ps.length?Math.round(ps.reduce((a,b)=>a+b,0)/ps.length):0;
-    const d=custs.length?(getTasks(custs[0]._id)[ti]?.TargetDate||null):null;
-    return{avg,d};
+function renderTranche(tr) {
+  var open = openT.has(tr._id);
+  var pct  = tranchePct(tr._id);
+  var custs = getCusts(tr._id);
+  var summary = TASKS.map(function(_,ti) {
+    var ps  = custs.map(function(c){var tk=getTasks(c._id)[ti];return tk?tk.Pct:0;});
+    var avg = ps.length?Math.round(ps.reduce(function(a,b){return a+b;},0)/ps.length):0;
+    var d   = custs.length?(getTasks(custs[0]._id)[ti]&&getTasks(custs[0]._id)[ti].TargetDate||null):null;
+    return {avg:avg, d:d};
   });
-  return `<div class="row-wrap" id="tr-${tr._id}">
-    <div class="tr-row" onclick="toggleT('${tr._id}')">
-      <div class="tc"><span class="chev ${open?'open':''}" id="cht-${tr._id}">▶</span></div>
-      <div class="tc">
-        <div style="font-weight:500;font-size:12px;display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-          ${tr.Title}<span class="badge-cnt">${tr.Customers} customers</span>${tr.Notes?`<span class="note-chip">${tr.Notes}</span>`:''}
-        </div>
-        <div style="font-size:10px;color:var(--text2);margin-top:2px">Phase: ${tr.Phase} · CSM: ${tr.CSM}</div>
-      </div>
-      <div class="tc">${pbar(pct,55)}</div>
-      ${summary.map(s=>`<div class="tc" style="text-align:center">
-        ${pill(s.avg===100?'Complete':s.avg>0?'In progress':'Not started')}
-        ${s.avg>0&&s.avg<100?`<div style="margin-top:2px;display:flex;justify-content:center">${pbar(s.avg,36)}</div>`:''}
-        ${s.d?`<div class="date-cell ${dc(s.d)}" style="margin-top:2px;text-align:center">${fmt(s.d)}</div>`:''}
-      </div>`).join('')}
-      <div class="tc"><div class="csm-wrap">
-        <div class="date-cell ${dc(tr.GoLive)}">Go-live: ${fmt(tr.GoLive)||'TBD'}</div>
-        ${csmChip(tr.CSM)}
-      </div></div>
-    </div>
-    ${open?`<div class="cust-rows" id="custs-${tr._id}">${custs.map(c=>renderCust(c)).join('')}</div>`:''}
-  </div>`;
+  var summaryHtml = summary.map(function(s) {
+    return '<div class="tc" style="text-align:center">'
+      + pill(s.avg===100?'Complete':s.avg>0?'In progress':'Not started')
+      + (s.avg>0&&s.avg<100?'<div style="margin-top:2px;display:flex;justify-content:center">'+pbar(s.avg,36)+'</div>':'')
+      + (s.d?'<div class="date-cell '+dc(s.d)+'" style="margin-top:2px;text-align:center">'+fmt(s.d)+'</div>':'')
+      + '</div>';
+  }).join('');
+  var custsHtml = open ? '<div class="cust-rows" id="custs-'+tr._id+'">'+custs.map(function(c){return renderCust(c);}).join('')+'</div>' : '';
+  return '<div class="row-wrap" id="tr-'+tr._id+'">'
+    + '<div class="tr-row" onclick="toggleT(\''+tr._id+'\')">'
+    +   '<div class="tc"><span class="chev '+(open?'open':'')+'" id="cht-'+tr._id+'">&#9658;</span></div>'
+    +   '<div class="tc"><div style="font-weight:500;font-size:12px;display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
+    +     tr.Title+'<span class="badge-cnt">'+tr.Customers+' customers</span>'+(tr.Notes?'<span class="note-chip">'+tr.Notes+'</span>':'')
+    +   '</div><div style="font-size:10px;color:var(--text2);margin-top:2px">Phase: '+tr.Phase+' &middot; CSM: '+tr.CSM+'</div></div>'
+    +   '<div class="tc">'+pbar(pct,55)+'</div>'
+    +   summaryHtml
+    +   '<div class="tc"><div class="csm-wrap"><div class="date-cell '+dc(tr.GoLive)+'">Go-live: '+(fmt(tr.GoLive)||'TBD')+'</div>'+csmChip(tr.CSM)+'</div></div>'
+    + '</div>'
+    + custsHtml
+    + '</div>';
 }
 
-function renderCust(c){
-  const open=openC.has(c._id);
-  const pct=custPct(c._id);
-  const tasks=getTasks(c._id);
-  const dis=c.Status==='churned'||c.Status==='disabled';
-  return `<div class="row-wrap" id="cu-${c._id}">
-    <div class="c-row" onclick="toggleC('${c._id}')">
-      <div class="cc"></div>
-      <div class="cc"><span class="chev ${open?'open':''}" id="chc-${c._id}">▶</span></div>
-      <div class="cc">
-        <div style="font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px">
-          ${c.Title}${dis?`<span class="pill p-dis" style="font-size:9px">disabled</span>`:''}
-        </div>
-        <div style="display:flex;gap:5px;align-items:center;margin-top:2px;flex-wrap:wrap">
-          ${c.CustomerId?`<span style="font-size:10px;color:var(--text2)">ID: ${c.CustomerId}</span>`:''}
-          ${c.Frequency?`<span style="font-size:10px;color:var(--text2)">${c.Frequency}</span>`:''}
-          ${c.Notes?`<span class="cat-chip">${c.Notes}</span>`:''}
-        </div>
-      </div>
-      <div class="cc">${pbar(pct,50)}</div>
-      ${tasks.map(tk=>`<div class="cc" style="text-align:center">
-        ${pill(dis?'Disabled':tk.Status)}
-        ${tk.Pct>0&&tk.Pct<100?`<div style="margin-top:2px;display:flex;justify-content:center">${pbar(tk.Pct,34)}</div>`:''}
-      </div>`).join('')}
-      <div class="cc"><div class="csm-wrap">
-        ${c.HandoffDate?`<div class="date-cell ${dc(c.HandoffDate)}">Handoff: ${fmt(c.HandoffDate)}</div>`:''}
-        ${c.CSM?csmChip(c.CSM):''}
-        <input class="inline-edit" value="${c.CSM||''}" placeholder="Assign CSM…"
-          style="font-size:10px;width:100%;margin-top:${c.CSM?'4':'0'}px"
-          onclick="event.stopPropagation()"
-          onblur="updateCSM('${c._id}',this.value)"
-          onkeydown="if(event.key==='Enter')this.blur()">
-      </div></div>
-    </div>
-    ${open?`<div class="task-detail-rows" id="tdr-${c._id}">${tasks.map(tk=>renderTaskRow(c,tk)).join('')}</div>`:''}
-  </div>`;
+function renderCust(c) {
+  var open  = openC.has(c._id);
+  var pct   = custPct(c._id);
+  var tasks = getTasks(c._id);
+  var dis   = c.Status==='churned'||c.Status==='disabled';
+  var taskCells = tasks.map(function(tk) {
+    return '<div class="cc" style="text-align:center">'
+      + pill(dis?'Disabled':tk.Status)
+      + (tk.Pct>0&&tk.Pct<100?'<div style="margin-top:2px;display:flex;justify-content:center">'+pbar(tk.Pct,34)+'</div>':'')
+      + '</div>';
+  }).join('');
+  var detailHtml = open ? '<div class="task-detail-rows" id="tdr-'+c._id+'">'+tasks.map(function(tk){return renderTaskRow(c,tk);}).join('')+'</div>' : '';
+  return '<div class="row-wrap" id="cu-'+c._id+'">'
+    + '<div class="c-row" onclick="toggleC(\''+c._id+'\')">'
+    +   '<div class="cc"></div>'
+    +   '<div class="cc"><span class="chev '+(open?'open':'')+'" id="chc-'+c._id+'">&#9658;</span></div>'
+    +   '<div class="cc"><div style="font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px">'+c.Title+(dis?'<span class="pill p-dis" style="font-size:9px">disabled</span>':'')+'</div>'
+    +     '<div style="display:flex;gap:5px;align-items:center;margin-top:2px;flex-wrap:wrap">'
+    +       (c.CustomerId?'<span style="font-size:10px;color:var(--text2)">ID: '+c.CustomerId+'</span>':'')
+    +       (c.Frequency?'<span style="font-size:10px;color:var(--text2)">'+c.Frequency+'</span>':'')
+    +       (c.Notes?'<span class="cat-chip">'+c.Notes+'</span>':'')
+    +     '</div></div>'
+    +   '<div class="cc">'+pbar(pct,50)+'</div>'
+    +   taskCells
+    +   '<div class="cc"><div class="csm-wrap">'
+    +     (c.HandoffDate?'<div class="date-cell '+dc(c.HandoffDate)+'">Handoff: '+fmt(c.HandoffDate)+'</div>':'')
+    +     (c.CSM?csmChip(c.CSM):'')
+    +     '<input class="inline-edit" value="'+(c.CSM||'')+'" placeholder="Assign CSM\u2026" style="font-size:10px;width:100%;margin-top:'+(c.CSM?'4':'0')+'px" onclick="event.stopPropagation()" onblur="updateCSM(\''+c._id+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">'
+    +   '</div></div>'
+    + '</div>'
+    + detailHtml
+    + '</div>';
 }
 
-function renderTaskRow(c,tk){
-  const open=openTk.has(tk._id);
-  const steps=JSON.parse(tk.StepsJson||'[]');
-  return `<div class="row-wrap" id="tkr-${tk._id}">
-    <div class="td-row" onclick="toggleTk('${tk._id}')">
-      <div style="padding:6px 4px"></div>
-      <div style="padding:6px 4px"><span class="chev ${open?'open':''}" id="chtk-${tk._id}">▶</span></div>
-      <div style="padding:6px 8px">
-        <div style="font-size:11px;font-weight:500">${tk.TaskName}</div>
-        <div style="margin-top:3px">${pbar(tk.Pct,60)}</div>
-      </div>
-      <div style="padding:6px 8px" onclick="event.stopPropagation()">
-        <select class="pill ${tk.Status==='Complete'?'p-done':tk.Status==='In progress'?'p-prog':'p-wait'} pill-sel" onchange="updateStatus('${tk._id}',this.value)">
-          <option ${tk.Status==='Not started'?'selected':''}>Not started</option>
-          <option ${tk.Status==='In progress'?'selected':''}>In progress</option>
-          <option ${tk.Status==='Complete'?'selected':''}>Complete</option>
-        </select>
-        ${tk.TargetDate?`<div class="date-cell ${dc(tk.TargetDate)}" style="margin-top:2px">${fmt(tk.TargetDate)}</div>`:''}
-      </div>
-      <div style="padding:6px 8px" onclick="event.stopPropagation()">
-        <input type="date" value="${tk.TargetDate||''}" class="date-cell" title="Target date" onchange="updateDate('${tk._id}',this.value)">
-      </div>
-    </div>
-    ${open?renderSteps(c,tk,steps):''}
-  </div>`;
+function renderTaskRow(c, tk) {
+  var open  = openTk.has(tk._id);
+  var steps = JSON.parse(tk.StepsJson || '[]');
+  var statusClass = tk.Status==='Complete'?'p-done':tk.Status==='In progress'?'p-prog':'p-wait';
+  return '<div class="row-wrap" id="tkr-'+tk._id+'">'
+    + '<div class="td-row" onclick="toggleTk(\''+tk._id+'\')">'
+    +   '<div style="padding:6px 4px"></div>'
+    +   '<div style="padding:6px 4px"><span class="chev '+(open?'open':'')+'" id="chtk-'+tk._id+'">&#9658;</span></div>'
+    +   '<div style="padding:6px 8px"><div style="font-size:11px;font-weight:500">'+tk.TaskName+'</div><div style="margin-top:3px">'+pbar(tk.Pct,60)+'</div></div>'
+    +   '<div style="padding:6px 8px" onclick="event.stopPropagation()">'
+    +     '<select class="pill '+statusClass+' pill-sel" onchange="updateStatus(\''+tk._id+'\',this.value)">'
+    +       '<option'+(tk.Status==='Not started'?' selected':'')+'>Not started</option>'
+    +       '<option'+(tk.Status==='In progress'?' selected':'')+'>In progress</option>'
+    +       '<option'+(tk.Status==='Complete'?' selected':'')+'>Complete</option>'
+    +     '</select>'
+    +     (tk.TargetDate?'<div class="date-cell '+dc(tk.TargetDate)+'" style="margin-top:2px">'+fmt(tk.TargetDate)+'</div>':'')
+    +   '</div>'
+    +   '<div style="padding:6px 8px" onclick="event.stopPropagation()">'
+    +     '<input type="date" value="'+(tk.TargetDate||'')+'" class="date-cell" title="Target date" onchange="updateDate(\''+tk._id+'\',this.value)">'
+    +   '</div>'
+    + '</div>'
+    + (open ? renderSteps(c, tk, steps) : '')
+    + '</div>';
 }
 
-function renderSteps(c,tk,steps){
-  const isTbd = steps.length>0 && steps[0].label.includes('TBD');
-  const tbdBanner = isTbd
+function renderSteps(c, tk, steps) {
+  var isTbd = steps.length > 0 && steps[0].label.indexOf('TBD') >= 0;
+  var tbdBanner = isTbd
     ? '<div style="padding:8px 12px 4px 78px;font-size:11px;color:var(--amber-text);background:var(--amber-bg);border-bottom:.5px solid var(--border)">Checklist not yet finalized — steps are placeholders.</div>'
     : '';
-  const rows = steps.map(function(s,si){
-    const cbxClass = 'cbx' + (s.done?' done':'');
-    const onclick = isTbd ? '' : 'toggleStep("'+tk._id+'",'+si+')';
-    const cbxStyle = isTbd ? 'opacity:0.4;cursor:not-allowed;' : '';
-    const checkmark = s.done ? '&#10003;' : '';
-    const labelStyle = isTbd ? 'color:var(--text3);' : '';
-    const tbdTag = isTbd ? ' <span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:1px 5px;border-radius:3px;vertical-align:middle">TBD</span>' : '';
-    const jobLink = (!isTbd && si===1 && c.Job)
-      ? '<div style="margin-top:3px"><a class="job-link" href="'+(c.JobLink||'#')+'" target="_blank">'+c.Job+'</a></div>'
-      : '';
-    const commentHtml = !isTbd
+  var rows = steps.map(function(s, si) {
+    var cbxClass  = 'cbx' + (s.done ? ' done' : '');
+    var onclick   = isTbd ? '' : 'toggleStep("'+tk._id+'",'+si+')';
+    var cbxStyle  = isTbd ? 'opacity:0.4;cursor:not-allowed;' : '';
+    var checkmark = s.done ? '&#10003;' : '';
+    var tbdTag    = isTbd ? '<span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:1px 5px;border-radius:3px;vertical-align:middle">TBD</span>' : '';
+    var jobLink   = (!isTbd && si===1 && c.Job)
+      ? '<div style="margin-top:3px"><a class="job-link" href="'+(c.JobLink||'#')+'" target="_blank">'+c.Job+'</a></div>' : '';
+    var cmtHtml = !isTbd
       ? '<div style="margin-top:4px" onclick="event.stopPropagation()">'
           + (s.comment
-            ? '<div class="cmt-display" onclick="editCmt(\''+tk._id+'\','+si+',this.parentNode.dataset.cmt);" data-cmt="'+s.comment.replace(/"/g,'&quot;')+'">'+s.comment+'</div>'
+            ? '<div class="cmt-display" onclick="editCmt(\''+tk._id+'\','+si+',this.dataset.cmt)" data-cmt="'+s.comment.replace(/"/g,'&quot;')+'">'+s.comment+'</div>'
             : '<input class="inline-edit" placeholder="Add comment\u2026" style="font-size:10px;color:var(--text2)" onblur="saveCmt(\''+tk._id+'\','+si+',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">')
           + '</div>'
       : '';
     return '<div class="step-row">'
-      + '<div style="display:flex;align-items:flex-start">'
-      +   '<div class="'+cbxClass+'" onclick="'+onclick+'" style="'+cbxStyle+'">'+checkmark+'</div>'
-      + '</div>'
-      + '<div>'
-      +   '<div class="step-label'+(s.done?' done':'')+'" style="'+labelStyle+'">'+s.label+tbdTag+'</div>'
-      +   jobLink
-      +   commentHtml
-      + '</div>'
+      + '<div style="display:flex;align-items:flex-start"><div class="'+cbxClass+'" onclick="'+onclick+'" style="'+cbxStyle+'">'+checkmark+'</div></div>'
+      + '<div><div class="step-label'+(s.done?' done':'')+'"'+(isTbd?' style="color:var(--text3)"':'')+'>'+s.label+' '+tbdTag+'</div>'+jobLink+cmtHtml+'</div>'
       + '</div>';
-  });
-  return '<div class="step-rows" id="steps-'+tk._id+'">'+tbdBanner+rows.join('')+'</div>';
+  }).join('');
+  return '<div class="step-rows" id="steps-'+tk._id+'">'+tbdBanner+rows+'</div>';
 }
 
-function toggleT(id){openT.has(id)?openT.delete(id):openT.add(id);reTr(id);}
-function toggleC(id){openC.has(id)?openC.delete(id):openC.add(id);reCu(id);}
-function toggleTk(id){openTk.has(id)?openTk.delete(id):openTk.add(id);reTk(id);}
+// ── Interactions ──────────────────────────────────────────────────────────────
+function toggleT(id)  { if(openT.has(id)) openT.delete(id); else openT.add(id); reTr(id); }
+function toggleC(id)  { if(openC.has(id)) openC.delete(id); else openC.add(id); reCu(id); }
+function toggleTk(id) { if(openTk.has(id)) openTk.delete(id); else openTk.add(id); reTk(id); }
 
-function toggleStep(tkId,si){
-  const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;
-  const steps=JSON.parse(tk.StepsJson||'[]');
-  steps[si].done=!steps[si].done;
-  tk.StepsJson=JSON.stringify(steps);
-  const done=steps.filter(s=>s.done).length;
-  tk.Pct=Math.round(done/steps.length*100);
-  tk.Status=tk.Pct===100?'Complete':tk.Pct>0?'In progress':'Not started';
-  scheduleSave('tasks',tk._id,{StepsJson:tk.StepsJson,Pct:tk.Pct,Status:tk.Status});
-  reTk(tkId);reCu(tk.CustomerId);reTr(tk.TrancheId);renderStats();
+function toggleStep(tkId, si) {
+  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
+  var steps = JSON.parse(tk.StepsJson||'[]');
+  steps[si].done = !steps[si].done;
+  tk.StepsJson = JSON.stringify(steps);
+  var done = steps.filter(function(s){return s.done;}).length;
+  tk.Pct    = Math.round(done / steps.length * 100);
+  tk.Status = tk.Pct===100?'Complete':tk.Pct>0?'In progress':'Not started';
+  scheduleSave('tasks', tk._id, {StepsJson:tk.StepsJson, Pct:tk.Pct, Status:tk.Status});
+  reTk(tkId); reCu(tk.CustomerId); reTr(tk.TrancheId); renderStats();
 }
-function updateStatus(tkId,val){
-  const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;
-  tk.Status=val;tk.Pct=val==='Complete'?100:val==='In progress'?50:0;
-  scheduleSave('tasks',tk._id,{Status:val,Pct:tk.Pct});
-  reTk(tkId);reCu(tk.CustomerId);reTr(tk.TrancheId);renderStats();
+function updateStatus(tkId, val) {
+  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
+  tk.Status = val; tk.Pct = val==='Complete'?100:val==='In progress'?50:0;
+  scheduleSave('tasks', tk._id, {Status:val, Pct:tk.Pct});
+  reTk(tkId); reCu(tk.CustomerId); reTr(tk.TrancheId); renderStats();
 }
-function updateDate(tkId,val){const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;tk.TargetDate=val;scheduleSave('tasks',tk._id,{TargetDate:val});}
-function updateCSM(cid,val){
-  const c=S.customers.find(x=>x._id===cid);if(!c)return;
-  c.CSM=val.trim();
-  scheduleSave('customers',c._id,{CSM:c.CSM});
-  reCu(cid);
+function updateDate(tkId, val) {
+  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
+  tk.TargetDate = val; scheduleSave('tasks', tk._id, {TargetDate:val});
 }
-function saveCmt(tkId,si,val){if(!val.trim())return;const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;const steps=JSON.parse(tk.StepsJson||'[]');steps[si].comment=val.trim();tk.StepsJson=JSON.stringify(steps);scheduleSave('tasks',tk._id,{StepsJson:tk.StepsJson});reTk(tkId);}
-function editCmt(tkId,si,ex){const tk=S.tasks.find(t=>t._id===tkId);if(!tk)return;const nv=prompt('Edit comment:',ex);if(nv===null)return;const steps=JSON.parse(tk.StepsJson||'[]');steps[si].comment=nv.trim();tk.StepsJson=JSON.stringify(steps);scheduleSave('tasks',tk._id,{StepsJson:tk.StepsJson});reTk(tkId);}
-
-function reTr(id){const el=document.getElementById('tr-'+id);if(!el)return;const tr=S.tranches.find(x=>x._id===id);if(!tr)return;el.outerHTML=renderTranche(tr);}
-function reCu(id){const el=document.getElementById('cu-'+id);if(!el)return;const c=S.customers.find(x=>x._id===id);if(!c)return;el.outerHTML=renderCust(c);}
-function reTk(id){const el=document.getElementById('tkr-'+id);if(!el)return;const tk=S.tasks.find(t=>t._id===id);if(!tk)return;const c=S.customers.find(x=>x._id===tk.CustomerId);if(!c)return;el.outerHTML=renderTaskRow(c,tk);}
-
-function renderStats(){
-  const pcts=S.customers.map(c=>custPct(c._id));
-  const done=pcts.filter(p=>p===100).length;
-  const inprog=pcts.filter(p=>p>0&&p<100).length;
-  const notstart=pcts.filter(p=>p===0).length;
-  const avg=pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):0;
-  const atRisk=S.customers.filter(c=>(c.Notes||'').toLowerCase().includes('risk')||c.Status==='churned').length;
-  const total=pcts.length;
-  document.getElementById('stat-row').innerHTML=`
-    <div class="stat"><div class="stat-label">Overall progress</div><div class="stat-val">${avg}%</div><div class="stat-sub">across all platforms</div></div>
-    <div class="stat"><div class="stat-label">Customers complete</div><div class="stat-val">${done}</div><div class="stat-sub">of ${total} total</div></div>
-    <div class="stat"><div class="stat-label">In progress</div><div class="stat-val">${inprog}</div><div class="stat-sub">active migrations</div></div>
-    <div class="stat"><div class="stat-label">At risk</div><div class="stat-val">${atRisk}</div><div class="stat-sub">renewal or timeline risk</div></div>`;
-  const dW=Math.round(done/total*100),pW=Math.round(inprog/total*100),nW=100-dW-pW;
-  document.getElementById('pipe-bar').innerHTML=`
-    <div class="pipe-hdr"><span style="font-weight:500;font-size:12px">Migration pipeline — all platforms</span><span style="color:var(--text2)">${avg}% complete</span></div>
-    <div class="bar-track">
-      <div class="bar-seg" style="width:${dW}%;background:#3B6D11"></div>
-      <div class="bar-seg" style="width:${pW}%;background:#185FA5"></div>
-      <div class="bar-seg" style="width:${nW}%;background:#D3D1C7"></div>
-    </div>
-    <div class="leg-row">
-      <div class="leg"><div class="dot" style="background:#3B6D11"></div>Complete (${done})</div>
-      <div class="leg"><div class="dot" style="background:#185FA5"></div>In progress (${inprog})</div>
-      <div class="leg"><div class="dot" style="background:#D3D1C7"></div>Not started (${notstart})</div>
-    </div>`;
+function updateCSM(cid, val) {
+  var c = S.customers.find(function(x){return x._id===cid;}); if (!c) return;
+  c.CSM = val.trim(); scheduleSave('customers', c._id, {CSM:c.CSM}); reCu(cid);
+}
+function saveCmt(tkId, si, val) {
+  if (!val.trim()) return;
+  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
+  var steps = JSON.parse(tk.StepsJson||'[]'); steps[si].comment = val.trim();
+  tk.StepsJson = JSON.stringify(steps); scheduleSave('tasks', tk._id, {StepsJson:tk.StepsJson}); reTk(tkId);
+}
+function editCmt(tkId, si, ex) {
+  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
+  var nv = prompt('Edit comment:', ex); if (nv===null) return;
+  var steps = JSON.parse(tk.StepsJson||'[]'); steps[si].comment = nv.trim();
+  tk.StepsJson = JSON.stringify(steps); scheduleSave('tasks', tk._id, {StepsJson:tk.StepsJson}); reTk(tkId);
 }
 
-function doSearch(el,plat){tabSearch[plat]=el.value;reTab(plat);}
-function doFilter(btn,plat,f){const isOn=btn.classList.contains('on');btn.closest('.toolbar').querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));tabFilter[plat]=isOn?null:f;if(!isOn)btn.classList.add('on');reTab(plat);}
-function switchTab(key){activeTab=key;renderTabs();}
-function reTab(plat){const el=document.getElementById('tab-'+plat);if(el)el.innerHTML=renderPlatform(plat);}
+// ── Re-render helpers ─────────────────────────────────────────────────────────
+function reTr(id) { var el=document.getElementById('tr-'+id); if(!el)return; var tr=S.tranches.find(function(x){return x._id===id;}); if(!tr)return; el.outerHTML=renderTranche(tr); }
+function reCu(id) { var el=document.getElementById('cu-'+id); if(!el)return; var c=S.customers.find(function(x){return x._id===id;}); if(!c)return; el.outerHTML=renderCust(c); }
+function reTk(id) { var el=document.getElementById('tkr-'+id); if(!el)return; var tk=S.tasks.find(function(t){return t._id===id;}); if(!tk)return; var c=S.customers.find(function(x){return x._id===tk.CustomerId;}); if(!c)return; el.outerHTML=renderTaskRow(c,tk); }
 
-// Auto-load on page open
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function renderStats() {
+  var pcts    = S.customers.map(function(c){return custPct(c._id);});
+  var done    = pcts.filter(function(p){return p===100;}).length;
+  var inprog  = pcts.filter(function(p){return p>0&&p<100;}).length;
+  var notstart= pcts.filter(function(p){return p===0;}).length;
+  var avg     = pcts.length ? Math.round(pcts.reduce(function(a,b){return a+b;},0)/pcts.length) : 0;
+  var atRisk  = S.customers.filter(function(c){return (c.Notes||'').toLowerCase().indexOf('risk')>=0||c.Status==='churned';}).length;
+  var total   = pcts.length;
+  document.getElementById('stat-row').innerHTML =
+    '<div class="stat"><div class="stat-label">Overall progress</div><div class="stat-val">'+avg+'%</div><div class="stat-sub">across all platforms</div></div>'
+    +'<div class="stat"><div class="stat-label">Customers complete</div><div class="stat-val">'+done+'</div><div class="stat-sub">of '+total+' total</div></div>'
+    +'<div class="stat"><div class="stat-label">In progress</div><div class="stat-val">'+inprog+'</div><div class="stat-sub">active migrations</div></div>'
+    +'<div class="stat"><div class="stat-label">At risk</div><div class="stat-val">'+atRisk+'</div><div class="stat-sub">renewal or timeline risk</div></div>';
+  var dW=Math.round(done/total*100), pW=Math.round(inprog/total*100), nW=100-dW-pW;
+  document.getElementById('pipe-bar').innerHTML =
+    '<div class="pipe-hdr"><span style="font-weight:500;font-size:12px">Migration pipeline &mdash; all platforms</span><span style="color:var(--text2)">'+avg+'% complete</span></div>'
+    +'<div class="bar-track"><div class="bar-seg" style="width:'+dW+'%;background:#3B6D11"></div><div class="bar-seg" style="width:'+pW+'%;background:#185FA5"></div><div class="bar-seg" style="width:'+nW+'%;background:#D3D1C7"></div></div>'
+    +'<div class="leg-row"><div class="leg"><div class="dot" style="background:#3B6D11"></div>Complete ('+done+')</div><div class="leg"><div class="dot" style="background:#185FA5"></div>In progress ('+inprog+')</div><div class="leg"><div class="dot" style="background:#D3D1C7"></div>Not started ('+notstart+')</div></div>';
+}
+
+// ── Filters / search / tab switch ─────────────────────────────────────────────
+function doSearch(el, plat) { tabSearch[plat]=el.value; reTab(plat); }
+function doFilter(btn, plat, f) {
+  var isOn = btn.classList.contains('on');
+  btn.closest('.toolbar').querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('on');});
+  tabFilter[plat] = isOn ? null : f;
+  if (!isOn) btn.classList.add('on');
+  reTab(plat);
+}
+function switchTab(key) { activeTab=key; renderTabs(); }
+function reTab(plat) { var el=document.getElementById('tab-'+plat); if(el) el.innerHTML=renderPlatform(plat); }
+
+// ── Start ─────────────────────────────────────────────────────────────────────
 loadDemo();
 </script>
 </body>
