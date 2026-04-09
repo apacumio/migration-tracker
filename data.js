@@ -34,20 +34,20 @@ function add(days) {
 const TRANCHES = [
 
   // ── NGPI ──
-  { _id:'t0',  Title:'Tranche 0',  Platform:'ngpi', Phase:'Matching',  Customers:12, CSM:'Sarah K.',  GoLive:add(45),  Notes:null },
-  { _id:'t1',  Title:'Tranche 1',  Platform:'ngpi', Phase:'Matching',  Customers:7,  CSM:'James T.',  GoLive:add(50),  Notes:null },
-  { _id:'t2',  Title:'Tranche 2',  Platform:'ngpi', Phase:'Matching',  Customers:11, CSM:'Maria L.',  GoLive:add(60),  Notes:null },
-  { _id:'t3',  Title:'Tranche 3',  Platform:'ngpi', Phase:'Matching',  Customers:8,  CSM:'David R.',  GoLive:add(65),  Notes:null },
-  { _id:'t4',  Title:'Tranche 4',  Platform:'ngpi', Phase:'Matching',  Customers:6,  CSM:'Priya N.',  GoLive:add(70),  Notes:null },
-  { _id:'t5',  Title:'Tranche 5',  Platform:'ngpi', Phase:'Discovery', Customers:6,  CSM:'Tom W.',    GoLive:add(90),  Notes:null },
-  { _id:'t6',  Title:'Tranche 6',  Platform:'ngpi', Phase:'Matching',  Customers:7,  CSM:'Sarah K.',  GoLive:add(55),  Notes:null },
-  { _id:'t7',  Title:'Tranche 7',  Platform:'ngpi', Phase:'Matching',  Customers:7,  CSM:'James T.',  GoLive:add(60),  Notes:null },
-  { _id:'t8',  Title:'Tranche 8',  Platform:'ngpi', Phase:'Discovery', Customers:5,  CSM:'Maria L.',  GoLive:add(100), Notes:null },
-  { _id:'t9',  Title:'Tranche 9',  Platform:'ngpi', Phase:'Discovery', Customers:6,  CSM:'David R.',  GoLive:add(105), Notes:null },
-  { _id:'t10', Title:'Tranche 10', Platform:'ngpi', Phase:'Discovery', Customers:8,  CSM:'Priya N.',  GoLive:add(115), Notes:null },
-  { _id:'t11', Title:'Tranche 11', Platform:'ngpi', Phase:'Discovery', Customers:5,  CSM:'Tom W.',    GoLive:add(120), Notes:null },
+  { _id:'t0',  Title:'Tranche 0',  Platform:'ngpi', Phase:'Matching',  Customers:5, CSM:'Sarah K.',  GoLive:add(45),  Notes:null },
+  { _id:'t1',  Title:'Tranche 1',  Platform:'ngpi', Phase:'Matching',  Customers:4,  CSM:'James T.',  GoLive:add(50),  Notes:null },
+  { _id:'t2',  Title:'Tranche 2',  Platform:'ngpi', Phase:'Matching',  Customers:3, CSM:'Maria L.',  GoLive:add(60),  Notes:null },
+  { _id:'t3',  Title:'Tranche 3',  Platform:'ngpi', Phase:'Matching',  Customers:2,  CSM:'David R.',  GoLive:add(65),  Notes:null },
+  { _id:'t4',  Title:'Tranche 4',  Platform:'ngpi', Phase:'Matching',  Customers:1,  CSM:'Priya N.',  GoLive:add(70),  Notes:null },
+  { _id:'t5',  Title:'Tranche 5',  Platform:'ngpi', Phase:'Discovery', Customers:3,  CSM:'Tom W.',    GoLive:add(90),  Notes:null },
+  { _id:'t6',  Title:'Tranche 6',  Platform:'ngpi', Phase:'Matching',  Customers:1,  CSM:'Sarah K.',  GoLive:add(55),  Notes:null },
+  { _id:'t7',  Title:'Tranche 7',  Platform:'ngpi', Phase:'Matching',  Customers:1,  CSM:'James T.',  GoLive:add(60),  Notes:null },
+  { _id:'t8',  Title:'Tranche 8',  Platform:'ngpi', Phase:'Discovery', Customers:1,  CSM:'Maria L.',  GoLive:add(100), Notes:null },
+  { _id:'t9',  Title:'Tranche 9',  Platform:'ngpi', Phase:'Discovery', Customers:1,  CSM:'David R.',  GoLive:add(105), Notes:null },
+  { _id:'t10', Title:'Tranche 10', Platform:'ngpi', Phase:'Discovery', Customers:2,  CSM:'Priya N.',  GoLive:add(115), Notes:null },
+  { _id:'t11', Title:'Tranche 11', Platform:'ngpi', Phase:'Discovery', Customers:1,  CSM:'Tom W.',    GoLive:add(120), Notes:null },
   { _id:'t12', Title:'Tranche 12', Platform:'ngpi', Phase:'Discovery', Customers:2,  CSM:'Sarah K.',  GoLive:add(150), Notes:'Largest: Radwell and Zoro' },
-  { _id:'t13', Title:'Tranche 13', Platform:'ngpi', Phase:'Discovery', Customers:5,  CSM:'James T.',  GoLive:add(160), Notes:'Incoming — not started' },
+  { _id:'t13', Title:'Tranche 13', Platform:'ngpi', Phase:'Discovery', Customers:0,  CSM:'James T.',  GoLive:add(160), Notes:'Incoming — not started' },
 
   // ── BPA ──
   { _id:'bpa-t1', Title:'BPA Active',          Platform:'bpa', Phase:'Discovery', Customers:78, CSM:'Maria L.', GoLive:add(120), Notes:'Tranche assignments TBD' },
