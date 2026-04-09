@@ -2,21 +2,11 @@
 // data.js — Tranches and customers for all four platforms
 //
 // HOW TO ADD A CUSTOMER:
-//   1. Find the right platform section below (NGPI, BPA, WISER MAP, NUMAP)
-//   2. Copy an existing customer entry and paste it at the end of that section
-//   3. Update: _id (must be unique), t (tranche id), name, cid, freq, hd, csm,
-//      notes, job, lnk
+//   1. Find the right platform section below
+//   2. Copy an existing entry and paste at the end of that section
+//   3. Update: _id (must be unique), t (tranche id), name, cid, freq, st,
+//      hd, csm, notes, job, lnk
 //   4. Save and commit to GitHub
-//
-// HOW TO ADD A TRANCHE:
-//   1. Add a new entry to the TRANCHES array for the right platform
-//   2. Use a new unique _id (e.g. 't14' for NGPI, 'bpa-t3' for BPA, etc.)
-//   3. Add customers referencing that tranche id in their `t` field
-//
-// HOW TO UPDATE A CSM OR DATE:
-//   Just find the customer by name and update the `csm` or `hd` field.
-//   Dates use the add() helper — add(45) means 45 days from Apr 2, 2026.
-//   To use an absolute date instead: replace add(45) with '2026-06-15'
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Date helper — days from base date
@@ -27,27 +17,23 @@ function add(days) {
   return d.toISOString().split('T')[0];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TRANCHES
-// Fields: _id, Title, Platform, Phase, Customers (count), CSM, GoLive, Notes
-// ─────────────────────────────────────────────────────────────────────────────
 const TRANCHES = [
 
   // ── NGPI ──
-  { _id:'t0',  Title:'Tranche 0',  Platform:'ngpi', Phase:'Matching',  Customers:5, CSM:'Sarah K.',  GoLive:add(45),  Notes:null },
-  { _id:'t1',  Title:'Tranche 1',  Platform:'ngpi', Phase:'Matching',  Customers:4,  CSM:'James T.',  GoLive:add(50),  Notes:null },
-  { _id:'t2',  Title:'Tranche 2',  Platform:'ngpi', Phase:'Matching',  Customers:3, CSM:'Maria L.',  GoLive:add(60),  Notes:null },
-  { _id:'t3',  Title:'Tranche 3',  Platform:'ngpi', Phase:'Matching',  Customers:2,  CSM:'David R.',  GoLive:add(65),  Notes:null },
-  { _id:'t4',  Title:'Tranche 4',  Platform:'ngpi', Phase:'Matching',  Customers:1,  CSM:'Priya N.',  GoLive:add(70),  Notes:null },
-  { _id:'t5',  Title:'Tranche 5',  Platform:'ngpi', Phase:'Discovery', Customers:3,  CSM:'Tom W.',    GoLive:add(90),  Notes:null },
-  { _id:'t6',  Title:'Tranche 6',  Platform:'ngpi', Phase:'Matching',  Customers:1,  CSM:'Sarah K.',  GoLive:add(55),  Notes:null },
+  { _id:'t0',  Title:'Tranche 0',  Platform:'ngpi', Phase:'Matching',  Customers:12, CSM:'Sarah K.',  GoLive:add(45),  Notes:null },
+  { _id:'t1',  Title:'Tranche 1',  Platform:'ngpi', Phase:'Matching',  Customers:7,  CSM:'James T.',  GoLive:add(50),  Notes:null },
+  { _id:'t2',  Title:'Tranche 2',  Platform:'ngpi', Phase:'Matching',  Customers:11, CSM:'Maria L.',  GoLive:add(60),  Notes:null },
+  { _id:'t3',  Title:'Tranche 3',  Platform:'ngpi', Phase:'Matching',  Customers:10,  CSM:'David R.',  GoLive:add(65),  Notes:null },
+  { _id:'t4',  Title:'Tranche 4',  Platform:'ngpi', Phase:'Matching',  Customers:6,  CSM:'Priya N.',  GoLive:add(70),  Notes:null },
+  { _id:'t5',  Title:'Tranche 5',  Platform:'ngpi', Phase:'Discovery', Customers:7,  CSM:'Tom W.',    GoLive:add(90),  Notes:null },
+  { _id:'t6',  Title:'Tranche 6',  Platform:'ngpi', Phase:'Matching',  Customers:7,  CSM:'Sarah K.',  GoLive:add(55),  Notes:null },
   { _id:'t7',  Title:'Tranche 7',  Platform:'ngpi', Phase:'Matching',  Customers:1,  CSM:'James T.',  GoLive:add(60),  Notes:null },
-  { _id:'t8',  Title:'Tranche 8',  Platform:'ngpi', Phase:'Discovery', Customers:1,  CSM:'Maria L.',  GoLive:add(100), Notes:null },
-  { _id:'t9',  Title:'Tranche 9',  Platform:'ngpi', Phase:'Discovery', Customers:1,  CSM:'David R.',  GoLive:add(105), Notes:null },
-  { _id:'t10', Title:'Tranche 10', Platform:'ngpi', Phase:'Discovery', Customers:2,  CSM:'Priya N.',  GoLive:add(115), Notes:null },
-  { _id:'t11', Title:'Tranche 11', Platform:'ngpi', Phase:'Discovery', Customers:1,  CSM:'Tom W.',    GoLive:add(120), Notes:null },
-  { _id:'t12', Title:'Tranche 12', Platform:'ngpi', Phase:'Discovery', Customers:2,  CSM:'Sarah K.',  GoLive:add(150), Notes:'Largest: Radwell and Zoro' },
-  { _id:'t13', Title:'Tranche 13', Platform:'ngpi', Phase:'Discovery', Customers:0,  CSM:'James T.',  GoLive:add(160), Notes:'Incoming — not started' },
+  { _id:'t8',  Title:'Tranche 8',  Platform:'ngpi', Phase:'Discovery', Customers:7,  CSM:'Maria L.',  GoLive:add(100), Notes:null },
+  { _id:'t9',  Title:'Tranche 9',  Platform:'ngpi', Phase:'Discovery', Customers:7,  CSM:'David R.',  GoLive:add(105), Notes:null },
+  { _id:'t10', Title:'Tranche 10', Platform:'ngpi', Phase:'Discovery', Customers:7,  CSM:'Priya N.',  GoLive:add(115), Notes:null },
+  { _id:'t11', Title:'Tranche 11', Platform:'ngpi', Phase:'Discovery', Customers:8,  CSM:'Tom W.',    GoLive:add(120), Notes:null },
+  { _id:'t12', Title:'Tranche 12', Platform:'ngpi', Phase:'Discovery', Customers:6,  CSM:'Sarah K.',  GoLive:add(150), Notes:'Largest: Radwell and Zoro' },
+  { _id:'t13', Title:'Tranche 13', Platform:'ngpi', Phase:'Discovery', Customers:2,  CSM:'James T.',  GoLive:add(160), Notes:'Incoming — not started' },
 
   // ── BPA ──
   { _id:'bpa-t1', Title:'BPA Active',          Platform:'bpa', Phase:'Discovery', Customers:78, CSM:'Maria L.', GoLive:add(120), Notes:'Tranche assignments TBD' },
@@ -64,64 +50,140 @@ const TRANCHES = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CUSTOMERS
-// Fields: _id, t (tranche id), p (platform), name, cid (customer id),
-//         freq (crawl frequency), st (status), hd (handoff date),
-//         csm, notes, job (discovery job name), lnk (job link)
+// Fields: _id, t (tranche id), p (platform), name, cid, freq, st (status),
+//         hd (handoff date), csm, notes, job (discovery job name), lnk (job link)
 // ─────────────────────────────────────────────────────────────────────────────
 const CUSTOMERS_RAW = [
 
-  // ── NGPI — Tranche 0 ─────────────────────────────────────────────────────
-  { _id:'n0', t:'t0', p:'ngpi', name:'Toshiba',          cid:'555158', freq:'Daily',     st:'production', hd:add(40), csm:'Sarah K.', notes:null,                                    job:'customertoshiba (555158)',        lnk:'https://orchestration.wiser.com/jobs/68f7b0f861fc5928bf0b8175' },
-  { _id:'n1', t:'t0', p:'ngpi', name:'Home Hardware LBM', cid:'555028', freq:'Weekly',    st:'production', hd:add(42), csm:'Sarah K.', notes:null,                                    job:'Home Hardware LBM (555028)',      lnk:'https://orchestration.wiser.com/jobs/68a35f321e91164be7d184b8' },
-  { _id:'n2', t:'t0', p:'ngpi', name:'PC Connection',     cid:'555063', freq:'Daily',     st:'production', hd:add(44), csm:'Sarah K.', notes:null,                                    job:'PC Connection (555063)',          lnk:'https://orchestration.wiser.com/jobs/68a7808524d57a833a4735f3' },
-  { _id:'n3', t:'t0', p:'ngpi', name:'Costco Canada',     cid:'555385', freq:'Biweekly',  st:'production', hd:add(50), csm:'Sarah K.', notes:null,                                    job:'CostcoCA (555385)',               lnk:'https://orchestration.wiser.com/jobs/698019636dfce9e1f8c0ff96' },
-  { _id:'n4', t:'t0', p:'ngpi', name:'Best Buy',           cid:'555070', freq:'Daily',     st:'production', hd:add(55), csm:'Sarah K.', notes:'Blocked domains: homedepot, lowes, walmart', job:null, lnk:null },
+  // ── NGPI — Tranche 0 ──
+  { _id:'n0', t:'t0', p:'ngpi', name:'Toshiba', cid:'555158', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    customertoshiba (555158) Job Name                         NaN Job Name                         NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n1', t:'t0', p:'ngpi', name:'Homehardwarelbm', cid:'555028', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Home Hardware LBM (555028) Job Name                           NaN Job Name                           NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n2', t:'t0', p:'ngpi', name:'Pcconnection', cid:'555063', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    PC Connection (555063) Job Name                       NaN Job Name                       NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n3', t:'t0', p:'ngpi', name:'Autobarn AU', cid:'555386', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Autobarn AU (555386) Job Name                     NaN Job Name                     NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n4', t:'t0', p:'ngpi', name:'Adorama', cid:'555593', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    customeradora maorgid527 (555593) Job Name                                  NaN Job Name                                  NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n5', t:'t0', p:'ngpi', name:'DigiDirect', cid:'555718', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    customerdigidirectorgid664 (555718) Job Name                                    NaN Job Name                                    NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n6', t:'t0', p:'ngpi', name:'Costcocanada', cid:'555385', freq:'Biweekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    CostcoCA (555385) - Full Discovery Job Name                                   NaN Job Name                                   NaN Name: 6, dtype: object', lnk:null },
+  { _id:'n7', t:'t0', p:'ngpi', name:'Bestbuy', cid:'555070', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 7, dtype: object', lnk:null },
+  { _id:'n8', t:'t0', p:'ngpi', name:'BBY US Fulfillment 2', cid:'555623', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Bbyfulfill2 (555623) Job Name                     NaN Job Name                     NaN Name: 8, dtype: object', lnk:null },
+  { _id:'n9', t:'t0', p:'ngpi', name:'Home Hardware', cid:'555027', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Home Hardware Hardline (555027) Job Name                                NaN Job Name                                NaN Name: 9, dtype: object', lnk:null },
+  { _id:'n10', t:'t0', p:'ngpi', name:'Academy Sports', cid:'555639', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Academy Sports (555639) Job Name                        NaN Job Name                        NaN Name: 10, dtype: object', lnk:null },
+  { _id:'n11', t:'t0', p:'ngpi', name:'BBY US Fulfillment', cid:'555595', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Bbyfulfill (555595) Job Name                    NaN Job Name                    NaN Name: 11, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 1 ─────────────────────────────────────────────────────
-  { _id:'n5', t:'t1', p:'ngpi', name:'Petwise',      cid:'555755', freq:null, st:'production', hd:add(48), csm:'James T.', notes:'25% renewal risk',        job:'Petwise (555755)',        lnk:'https://orchestration.wiser.com/jobs/68e010b42449d6a4bfea0fa8' },
-  { _id:'n6', t:'t1', p:'ngpi', name:'Rrigoods',     cid:'555754', freq:null, st:'production', hd:add(50), csm:'James T.', notes:'90% – expires 3/7/27',    job:'Rrigoods700 (555754)',    lnk:'https://orchestration.wiser.com/jobs/697c6c96c515e84a0d112ea6' },
-  { _id:'n7', t:'t1', p:'ngpi', name:'The Brick',    cid:'555328', freq:null, st:'production', hd:add(52), csm:'James T.', notes:'90% – expires 12/31/26',  job:'TheBrick (555328)',       lnk:'https://orchestration.wiser.com/jobs/696da02b3384b43abc98ae21' },
-  { _id:'n8', t:'t1', p:'ngpi', name:'RepairClinic', cid:'555439', freq:null, st:'production', hd:add(50), csm:'James T.', notes:'100% – auto renewed',     job:'RepairClinic (555439)',   lnk:'https://orchestration.wiser.com/jobs/696e6c2cd1d011cb20237a0f' },
+  // ── NGPI — Tranche 1 ──
+  { _id:'n12', t:'t1', p:'ngpi', name:'Petwise', cid:'555755', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Petwise (555755*) (555755) Job Name                           NaN Job Name                           NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n13', t:'t1', p:'ngpi', name:'Rrigoods', cid:'555754', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Rrigoods700 (555754) - Full Discovery Job Name                                      NaN Job Name                                      NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n14', t:'t1', p:'ngpi', name:'Officeworks B2B', cid:'555794', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    OfficeworksB2B  - Full Discovery (555794) Job Name                                          NaN Job Name                                          NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n15', t:'t1', p:'ngpi', name:'Thebrick', cid:'555328', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    TheBrick (555328) - Full Discovery Job Name                                   NaN Job Name                                   NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n16', t:'t1', p:'ngpi', name:'Woolworths 3P', cid:'555786', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Woolworths3  - Full Discovery (555786) Job Name                                       NaN Job Name                                       NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n17', t:'t1', p:'ngpi', name:'Repairclinic', cid:'555439', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    RepairClinic  - Full Discovery (555439) Job Name                                        NaN Job Name                                        NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n18', t:'t1', p:'ngpi', name:'Parts Express', cid:'555787', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    PartsExpress  - Full Discovery (555787) Job Name                                        NaN Job Name                                        NaN Name: 6, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 2 ─────────────────────────────────────────────────────
-  { _id:'n9',  t:'t2', p:'ngpi', name:'Electrolux', cid:'555834', freq:null, st:'production', hd:add(58), csm:'Maria L.', notes:null,                      job:'Electrolux780 (555834)', lnk:'https://orchestration.wiser.com/jobs/697c6e73ac0d44c1b0ad6229' },
-  { _id:'n10', t:'t2', p:'ngpi', name:'Rockler',    cid:'555747', freq:null, st:'production', hd:add(60), csm:'Maria L.', notes:'90% – expires 1/7/27',    job:'Rockler693 (555747)',    lnk:'https://orchestration.wiser.com/jobs/697c724ac515e84a0d11327e' },
-  { _id:'n11', t:'t2', p:'ngpi', name:'84 Lumber',  cid:'555154', freq:null, st:'production', hd:add(28), csm:'Maria L.', notes:'Expires 4/30/26 – at risk',job:'84lumber (555154)',      lnk:'https://orchestration.wiser.com/jobs/697d05ff15da8e8c50bc887b' },
+  // ── NGPI — Tranche 2 ──
+  { _id:'n19', t:'t2', p:'ngpi', name:'Electrolux', cid:'555834', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Electrolux780 (555834) - Full Discovery Job Name                                        NaN Job Name                                        NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n20', t:'t2', p:'ngpi', name:'Electroluxcdiscount', cid:'555835', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Electroluxcdiscount781 (555835) - Full Discovery Job Name                                                 NaN Job Name                                                 NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n21', t:'t2', p:'ngpi', name:'Rockler', cid:'555747', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Rockler693 (555747) - Full Discovery Job Name                                     NaN Job Name                                     NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n22', t:'t2', p:'ngpi', name:'Costco Australia Tyres', cid:'555752', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    CostcoAU698 (555752) - Full Discovery Job Name                                      NaN Job Name                                      NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n23', t:'t2', p:'ngpi', name:'Rocky Mountain Tusk', cid:'555833', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Rockymountaintusk779  (555833) - Full Discovery Job Name                                                NaN Job Name                                                NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n24', t:'t2', p:'ngpi', name:'Lumber', cid:'555154', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    84lumber (555154) - Full Discovery Job Name                                   NaN Job Name                                   NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n25', t:'t2', p:'ngpi', name:'Shell', cid:'555653', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Shell  - Full Discovery (555653) Job Name                                 NaN Job Name                                 NaN Name: 6, dtype: object', lnk:null },
+  { _id:'n26', t:'t2', p:'ngpi', name:'Sutton Tools', cid:'555234', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    SuttonTools  - Full Discovery (555234) Job Name                                       NaN Job Name                                       NaN Name: 7, dtype: object', lnk:null },
+  { _id:'n27', t:'t2', p:'ngpi', name:'J.D. Irving', cid:'555722', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    JDIrving  - Full Discovery (555722) Job Name                                    NaN Job Name                                    NaN Name: 8, dtype: object', lnk:null },
+  { _id:'n28', t:'t2', p:'ngpi', name:'Masco', cid:'555036', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Masco  - Full Discovery3Jan 20, 2026COMPLETE96... Job Name                                                  NaN Job Name                                                  NaN Name: 9, dtype: object', lnk:null },
+  { _id:'n29', t:'t2', p:'ngpi', name:'Prime Line', cid:'555788', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    Primeline (555788) - Full Discovery Job Name                                    NaN Job Name                                    NaN Name: 10, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 3 ─────────────────────────────────────────────────────
-  { _id:'n12', t:'t3', p:'ngpi', name:'Oscar de France', cid:'555735', freq:null, st:'churned',    hd:null,     csm:'David R.', notes:'Customer churned',    job:'Disabled', lnk:null },
-  { _id:'n13', t:'t3', p:'ngpi', name:'Purina Canada',   cid:'555641', freq:null, st:'production', hd:add(63), csm:'David R.', notes:'BOT issues found',    job:'purinacanada (555641)',  lnk:'https://orchestration.wiser.com/jobs/6983bb0bd7806b82a6ebbbf3' },
+  // ── NGPI — Tranche 3 ──
+  { _id:'n30', t:'t3', p:'ngpi', name:'Oscar de France', cid:'555735', freq:null, st:'churned', hd:add(60), csm:'', notes:'customer churned', job:'1 Job Name    Disabled Job Name         NaN Job Name         NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n31', t:'t3', p:'ngpi', name:'All Promos', cid:'555770', freq:null, st:'production', hd:add(60), csm:'', notes:'complete', job:'1 Job Name    4allpromosorgid716 555770 - Full Discovery v-gk Job Name                                                NaN Job Name                                                NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n32', t:'t3', p:'ngpi', name:'Purinacanada', cid:'555641', freq:null, st:'production', hd:add(60), csm:'', notes:'checking, Found BOT issues', job:'1 Job Name    purinacanadaorgid574 555641 - Full Discovery v-iv Job Name                                                  NaN Job Name                                                  NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n33', t:'t3', p:'ngpi', name:'Harvey Norman Bathrooms', cid:'555778', freq:null, st:'production', hd:add(60), csm:'', notes:'checking', job:'1 Job Name    harveynormanbathroomsorgid724 555778 - Full Di... Job Name                                                  NaN Job Name                                                  NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n34', t:'t3', p:'ngpi', name:'Costco Australia', cid:'555756', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    costcoaustraliad16d93orgid702 555756 - Full Di... Job Name                                                  NaN Job Name                                                  NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n35', t:'t3', p:'ngpi', name:'Ellsworth', cid:'555749', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    ellsworthorgid695 555749 - Full Discovery v-dz Job Name                                               NaN Job Name                                               NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n36', t:'t3', p:'ngpi', name:'Henry Schein', cid:'555799', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    henrysheinorgid745 555799 - Full Discovery v-4k Job Name                                                NaN Job Name                                                NaN Name: 6, dtype: object', lnk:null },
+  { _id:'n37', t:'t3', p:'ngpi', name:'The Pet Place', cid:'555844', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    thepetplaceorgid790 555844 - Full Discovery v-kx Job Name                                                 NaN Job Name                                                 NaN Name: 7, dtype: object', lnk:null },
+  { _id:'n38', t:'t3', p:'ngpi', name:'Lightbulb Surplus', cid:'555816', freq:null, st:'churned', hd:add(60), csm:'', notes:'customer churned', job:'1 Job Name    Disabled Job Name         NaN Job Name         NaN Name: 8, dtype: object', lnk:null },
+  { _id:'n39', t:'t3', p:'ngpi', name:'Rocky Mountain ATV', cid:'555824', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    RockyMountain ATV  - Full Discovery (555824) Job Name                                             NaN Job Name                                             NaN Name: 9, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 4 ─────────────────────────────────────────────────────
-  { _id:'n14', t:'t4', p:'ngpi', name:'Lifetime', cid:'555099', freq:'Daily', st:'production', hd:add(68), csm:'Priya N.', notes:null, job:'lifetime (555099)', lnk:'https://orchestration.wiser.com/jobs/698a25c5e848ba27197d8fc8' },
+  // ── NGPI — Tranche 4 ──
+  { _id:'n40', t:'t4', p:'ngpi', name:'Lifetime', cid:'555099', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    lifetime 555099 - Full Discovery v-m0 Job Name                                      NaN Job Name                                      NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n41', t:'t4', p:'ngpi', name:'Narta WTB', cid:'555276', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    nartawtborgid212 555276 - Full Discovery v-jb Job Name                                              NaN Job Name                                              NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n42', t:'t4', p:'ngpi', name:'Woolworths', cid:'555779', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    woolworthsorgid725 555779 - Full Discovery v-pa Job Name                                                NaN Job Name                                                NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n43', t:'t4', p:'ngpi', name:'The Blue Space', cid:'555712', freq:'Daily', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    thebluespaceorgid658 555712 - Full Discovery v-ls Job Name                                                  NaN Job Name                                                  NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n44', t:'t4', p:'ngpi', name:'FW Webb Company', cid:'555642', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    fwwebbcompanyorgid575 555642 - Full Discovery ... Job Name                                                  NaN Job Name                                                  NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n45', t:'t4', p:'ngpi', name:'Musician\'s Friend', cid:'186338', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    musiciansfriend 186338 - Full Discovery v-3t Job Name                                             NaN Job Name                                             NaN Name: 5, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 5 ─────────────────────────────────────────────────────
-  { _id:'n15', t:'t5', p:'ngpi', name:'CPO2',      cid:'36074',  freq:'Weekly', st:'production', hd:add(88), csm:'Tom W.', notes:'Discovery complete',             job:'cpo2 (36074)',      lnk:'https://orchestration.wiser.com/jobs/698a2b598f3940f5c55cd934' },
-  { _id:'n16', t:'t5', p:'ngpi', name:'Rustoleum', cid:'555798', freq:'Weekly', st:'production', hd:add(90), csm:'Tom W.', notes:null,                            job:'Rustoleum (555798)',lnk:'https://orchestration.wiser.com/jobs/69bc65e652894de36179721b' },
-  { _id:'n17', t:'t5', p:'ngpi', name:'Bass Pro',  cid:'555626', freq:'Weekly', st:'production', hd:add(95), csm:'Tom W.', notes:'2 groups running, 660k catalog', job:null, lnk:null },
+  // ── NGPI — Tranche 5 ──
+  { _id:'n46', t:'t5', p:'ngpi', name:'Cpo2', cid:'36074', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'Complete', job:'1 Job Name    cpo2 36074 - Full Discovery v-ud Job Name                                 NaN Job Name                                 NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n47', t:'t5', p:'ngpi', name:'Rustoleum', cid:'555798', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'Complete', job:'1 Job Name    customerrustoleumorgid744 555798 - Full Discovery Job Name                                                  NaN Job Name                                                  NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n48', t:'t5', p:'ngpi', name:'Total Tools', cid:'555001', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Disabled', job:'1 Job Name    totaltools 555001 - Full Discovery v-8r Job Name                                        NaN Job Name                                        NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n49', t:'t5', p:'ngpi', name:'Tractor Supply (Pilot)', cid:'555062', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    tractorsupplypilot 555062 - Full Discovery v-x0 Job Name                                                NaN Job Name                                                NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n50', t:'t5', p:'ngpi', name:'Purina', cid:'555588', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'complete', job:'1 Job Name    purinaorgid522 555588 - Full Discovery v-ug Job Name                                            NaN Job Name                                            NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n51', t:'t5', p:'ngpi', name:'Basspro', cid:'555626', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'2 groups, group 1 is stil lrunning, 660k catalog', job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n52', t:'t5', p:'ngpi', name:'Pet Circle', cid:'555737', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'complete', job:'1 Job Name    petcircleorgid683 555737 - Full Discovery v-ns Job Name                                               NaN Job Name                                               NaN Name: 6, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 6 ─────────────────────────────────────────────────────
-  { _id:'n18', t:'t6', p:'ngpi', name:'Hisense UK', cid:'555795', freq:null, st:'production', hd:add(53), csm:'Sarah K.', notes:'Discovery complete', job:'hisenseuk (555795)', lnk:'https://orchestration.wiser.com/jobs/698a32378f3940f5c55cdc2b' },
+  // ── NGPI — Tranche 6 ──
+  { _id:'n53', t:'t6', p:'ngpi', name:'Hisenseuk', cid:'555795', freq:null, st:'production', hd:add(60), csm:'', notes:'Complete', job:'1 Job Name    hisenseukorgid741 555795 - Full Discovery v-z1 Job Name                                               NaN Job Name                                               NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n54', t:'t6', p:'ngpi', name:'Dafy Moto', cid:'555762', freq:null, st:'production', hd:add(60), csm:'', notes:'Complete', job:'1 Job Name    dafymotoorgid708 555762 - Full Discovery v-s8 Job Name                                              NaN Job Name                                              NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n55', t:'t6', p:'ngpi', name:'Woodcraft', cid:'555761', freq:null, st:'production', hd:add(60), csm:'', notes:'Complete', job:'1 Job Name    woodcraftorgid707 555761 - Full Discovery v-5b Job Name                                               NaN Job Name                                               NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n56', t:'t6', p:'ngpi', name:'Carbatec Australia', cid:'555771', freq:null, st:'production', hd:add(60), csm:'', notes:'Complete', job:'1 Job Name    carbatecaustraliaorgid717 555771 - Full Discov... Job Name                                                  NaN Job Name                                                  NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n57', t:'t6', p:'ngpi', name:'Tractor Supply (Digital)', cid:'555783', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    tractorsupplydigitalorgid729 555783 - Full Dis... Job Name                                                  NaN Job Name                                                  NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n58', t:'t6', p:'ngpi', name:'Medi-SPT', cid:'555774', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'Complete after bot issue resolved', job:'1 Job Name    medisptorgid720 555774 - Full Discovery v-ry Job Name                                             NaN Job Name                                             NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n59', t:'t6', p:'ngpi', name:'Officeworks B2C', cid:'555793', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Complete', job:'1 Job Name    officeworksb2corgid739 555793 - Full Discovery... Job Name                                                  NaN Job Name                                                  NaN Name: 6, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 7 ─────────────────────────────────────────────────────
-  { _id:'n19', t:'t7', p:'ngpi', name:'BSR Stancash', cid:'555791', freq:'Daily', st:'production', hd:add(58), csm:'James T.', notes:'BOT resolved', job:'bsrstancash (555791)', lnk:'https://orchestration.wiser.com/jobs/698a36e6e848ba27197d981c' },
+  // ── NGPI — Tranche 8 ──
+  { _id:'n60', t:'t8', p:'ngpi', name:'Bsrstancash', cid:'555791', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    bsrstancashorgid737 555791 - Full Discovery v-lp Job Name                                                 NaN Job Name                                                 NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n61', t:'t8', p:'ngpi', name:'BSR Billy Guyatts', cid:'555790', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    bsrbillyguyattsorgid736 555790 - Full Discover... Job Name                                                  NaN Job Name                                                  NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n62', t:'t8', p:'ngpi', name:'BSR Betta Home Living', cid:'555789', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Complete, Found BOT issues', job:'1 Job Name    bsrbettahomelivingorgid735 555789 - Full Disco... Job Name                                                  NaN Job Name                                                  NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n63', t:'t8', p:'ngpi', name:'Ebuyer', cid:'555748', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    ebuyerorgid694 555748 - Full Discovery v-qg Job Name                                            NaN Job Name                                            NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n64', t:'t8', p:'ngpi', name:'Grand & Toy', cid:'555764', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    grandandtoyorgid710 555764 - Full Discovery v-bp Job Name                                                 NaN Job Name                                                 NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n65', t:'t8', p:'ngpi', name:'Currys UK IE', cid:'555763', freq:null, st:'production', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    currysukieorgid709 555763 - Full Discovery v-u4 Job Name                                                NaN Job Name                                                NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n66', t:'t8', p:'ngpi', name:'Currys UK', cid:'555760', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    currysukorgid706 555760 - Full Discovery v-zz Job Name                                              NaN Job Name                                              NaN Name: 6, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 8 ─────────────────────────────────────────────────────
-  { _id:'n20', t:'t8', p:'ngpi', name:'eStrading Bathrooms', cid:'555827', freq:null, st:'onboarding', hd:add(100), csm:'Maria L.', notes:'BOT resolved', job:'estrading (555827)', lnk:'https://orchestration.wiser.com/jobs/698a3bfe8f3940f5c55ce26b' },
+  // ── NGPI — Tranche 9 ──
+  { _id:'n67', t:'t9', p:'ngpi', name:'Foodworks Australia', cid:'555691', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'waiting for customer to officially start implementation', job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n68', t:'t9', p:'ngpi', name:'Kirby Risk', cid:'555714', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Disabled', job:'1 Job Name    Disabled Job Name         NaN Job Name         NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n69', t:'t9', p:'ngpi', name:'Estradingbathrooms', cid:'555827', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    estradingbathroomsorgid773 555827 - Full Disco... Job Name                                                  NaN Job Name                                                  NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n70', t:'t9', p:'ngpi', name:'CSE Solutions', cid:'555832', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    csesolutionsorgid778 555832 - Full Discovery v-8y Job Name                                                  NaN Job Name                                                  NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n71', t:'t9', p:'ngpi', name:'Electroluxrakuten', cid:'555836', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    electroluxrakutenorgid782 555836 - Full Discov... Job Name                                                  NaN Job Name                                                  NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n72', t:'t9', p:'ngpi', name:'Only Natural Pet', cid:'555845', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    onlynaturalpetorgid791 555845 - Full Discovery... Job Name                                                  NaN Job Name                                                  NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n73', t:'t9', p:'ngpi', name:'Bulbs.com', cid:'555804', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Disabled', job:'1 Job Name    Disabled Job Name         NaN Job Name         NaN Name: 6, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 9 ─────────────────────────────────────────────────────
-  { _id:'n21', t:'t9', p:'ngpi', name:'Vitamin Shoppe', cid:'555815', freq:null, st:'onboarding', hd:add(103), csm:'David R.', notes:'BOT resolved', job:'vitaminshoppe (555815)', lnk:'https://orchestration.wiser.com/jobs/698a3e901f4ec7bc059a15b5' },
+  // ── NGPI — Tranche 10 ──
+  { _id:'n74', t:'t10', p:'ngpi', name:'Vitaminshoppe1198340306', cid:'555815', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    vitaminshoppe1198340306orgid761 555815 - Full ... Job Name                                                  NaN Job Name                                                  NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n75', t:'t10', p:'ngpi', name:'Brent Industries LLC', cid:'555817', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    brentindustriesllc715571orgid763 555817 - Full... Job Name                                                  NaN Job Name                                                  NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n76', t:'t10', p:'ngpi', name:'Backcountrybjklffwm', cid:'555818', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Disabled', job:'1 Job Name    Disabled Job Name         NaN Job Name         NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n77', t:'t10', p:'ngpi', name:'Brent Industries LLC 2', cid:'555819', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Disabled', job:'1 Job Name    Disabled Job Name         NaN Job Name         NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n78', t:'t10', p:'ngpi', name:'Reliance Worldwide', cid:'555820', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    RelianceWorldwi de  - Full Discovery (555820) Job Name                                              NaN Job Name                                              NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n79', t:'t10', p:'ngpi', name:'Essendant', cid:'555821', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    Essendant  - Full Discovery9Jan 21, 2026COMPLE... Job Name                                                  NaN Job Name                                                  NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n80', t:'t10', p:'ngpi', name:'Katom', cid:'555822', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    Katom  - Full Discovery (555822) Job Name                                 NaN Job Name                                 NaN Name: 6, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 10 ────────────────────────────────────────────────────
-  { _id:'n22', t:'t10', p:'ngpi', name:'RealTruck',    cid:'555825', freq:null, st:'onboarding', hd:add(113), csm:'Priya N.', notes:'BOT issues found',  job:'Realtruck (555825)',     lnk:'https://orchestration.wiser.com/jobs/69727d490e4ffc46b78bf0c2' },
-  { _id:'n23', t:'t10', p:'ngpi', name:'Mattress Firm', cid:'555828', freq:null, st:'onboarding', hd:add(115), csm:'Priya N.', notes:'Complete checking', job:'mattressfirm (555828)', lnk:'https://orchestration.wiser.com/jobs/698a3fb21f4ec7bc059a1679' },
+  // ── NGPI — Tranche 11 ──
+  { _id:'n81', t:'t11', p:'ngpi', name:'Realtruck', cid:'555825', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, Found BOT issues', job:'1 Job Name    Realtruck  - Full Discovery (555825) Job Name                                     NaN Job Name                                     NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n82', t:'t11', p:'ngpi', name:'Mattressfirm', cid:'555828', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete Checking', job:'1 Job Name    mattressfirmorgid774 555828 - Full Discovery v-og Job Name                                                  NaN Job Name                                                  NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n83', t:'t11', p:'ngpi', name:'Cole Haan', cid:'555829', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    Colehaan  - Full Discovery (555829) Job Name                                    NaN Job Name                                    NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n84', t:'t11', p:'ngpi', name:'Integrated Supply Network', cid:'555830', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Completed, After BOT issue resolved', job:'1 Job Name    IntegratedSuppl yNetwork  - Full Discovery (55... Job Name                                                  NaN Job Name                                                  NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n85', t:'t11', p:'ngpi', name:'Mattressfirmmatching', cid:'555831', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    Mattressfirmmat chingorgid777  - Full Disovery... Job Name                                                  NaN Job Name                                                  NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n86', t:'t11', p:'ngpi', name:'Wistex', cid:'555838', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    wistexorgid784 555838 - Full Discovery v-p5 Job Name                                            NaN Job Name                                            NaN Name: 5, dtype: object', lnk:null },
+  { _id:'n87', t:'t11', p:'ngpi', name:'Surveillance Video', cid:'555840', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    surveillancevideoorgid786 555840 - Full Discov... Job Name                                                  NaN Job Name                                                  NaN Name: 6, dtype: object', lnk:null },
+  { _id:'n88', t:'t11', p:'ngpi', name:'Rrigoods7c7tqbxkm', cid:'555841', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    rrigoods7c7tqbxkmorgid787 555841 - Full Discovery Job Name                                                  NaN Job Name                                                  NaN Name: 7, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 11 ────────────────────────────────────────────────────
-  { _id:'n24', t:'t11', p:'ngpi', name:'Jenson USA 2', cid:'555805', freq:'Daily', st:'onboarding', hd:add(118), csm:'Tom W.', notes:'Discovery complete', job:'jensonusa2 (555805)', lnk:'https://orchestration.wiser.com/jobs/698a4154e848ba27197d9e17' },
+  // ── NGPI — Tranche 12 ──
+  { _id:'n89', t:'t12', p:'ngpi', name:'Backcountry', cid:'555843', freq:null, st:'onboarding', hd:add(60), csm:'', notes:'Disabled', job:'1 Job Name    Disabled Job Name         NaN Job Name         NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n90', t:'t12', p:'ngpi', name:'Jensonusa2', cid:'555805', freq:'Daily', st:'onboarding', hd:add(60), csm:'', notes:'Complete, No BOT issues Found', job:'1 Job Name    jensonusa2orgid751 555805 - Full Discovery v-62 Job Name                                                NaN Job Name                                                NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n91', t:'t12', p:'ngpi', name:'Carewell', cid:'555842', freq:'Daily', st:'onboarding', hd:add(60), csm:'', notes:'Complete, checking', job:'1 Job Name    carewell2orgid788 555842 - Full Discovery v-3k Job Name                                               NaN Job Name                                               NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n92', t:'t12', p:'ngpi', name:'FWW B-Zone', cid:'555700', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'Complete, checking', job:'1 Job Name    fwwbzoneorgid646 555700 - Full Discovery v-7n Job Name                                              NaN Job Name                                              NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n93', t:'t12', p:'ngpi', name:'Future Shop CA', cid:'4', freq:'Thrice-Weekly', st:'production', hd:add(60), csm:'', notes:'bestbuy canada', job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 4, dtype: object', lnk:null },
+  { _id:'n94', t:'t12', p:'ngpi', name:'Home Depot New', cid:'3618740', freq:'Daily', st:'production', hd:add(60), csm:'', notes:'Avoid this one for now', job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 5, dtype: object', lnk:null },
 
-  // ── NGPI — Tranche 12 ────────────────────────────────────────────────────
-  { _id:'n25', t:'t12', p:'ngpi', name:'Radwell', cid:'555801', freq:null,     st:'production', hd:add(148), csm:'Sarah K.', notes:'Do not run yet', job:null, lnk:null },
-  { _id:'n26', t:'t12', p:'ngpi', name:'Zoro',    cid:'555008', freq:'Weekly', st:'production', hd:add(150), csm:'Sarah K.', notes:'Do not run yet', job:null, lnk:null },
+  // ── NGPI — Tranche 13 ──
+  { _id:'n95', t:'t13', p:'ngpi', name:'Radwell', cid:'555801', freq:null, st:'production', hd:add(60), csm:'', notes:'Do not run this yet', job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n96', t:'t13', p:'ngpi', name:'Zoro', cid:'555008', freq:'Weekly', st:'production', hd:add(60), csm:'', notes:'Do not run this yet', job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 1, dtype: object', lnk:null },
+
+  // ── NGPI — Tranche Unassigned ──
+  { _id:'n97', t:'tunk', p:'ngpi', name:'Costcousbundles', cid:'555854', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 0, dtype: object', lnk:null },
+  { _id:'n98', t:'tunk', p:'ngpi', name:'LG Competitive', cid:'555858', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 1, dtype: object', lnk:null },
+  { _id:'n99', t:'tunk', p:'ngpi', name:'The Very Group', cid:'555846', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 2, dtype: object', lnk:null },
+  { _id:'n100', t:'tunk', p:'ngpi', name:'Nestle HS', cid:'555848', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 3, dtype: object', lnk:null },
+  { _id:'n101', t:'tunk', p:'ngpi', name:'The Very Group', cid:'555857', freq:null, st:'production', hd:add(60), csm:'', notes:null, job:'1 Job Name    NaN Job Name    NaN Job Name    NaN Name: 4, dtype: object', lnk:null },
 
   // ── BPA — Active ─────────────────────────────────────────────────────────
   { _id:'ba0',  t:'bpa-t1', p:'bpa', name:'AHF',                       cid:null, freq:null, st:'production', hd:add(100), csm:'Maria L.', notes:null, job:null, lnk:null },
@@ -202,8 +264,6 @@ const CUSTOMERS_RAW = [
   { _id:'ba75', t:'bpa-t1', p:'bpa', name:'WWRD',                      cid:null, freq:null, st:'production', hd:add(175), csm:'Maria L.', notes:null, job:null, lnk:null },
   { _id:'ba76', t:'bpa-t1', p:'bpa', name:'Yamaha Motor',              cid:null, freq:null, st:'production', hd:add(176), csm:'Maria L.', notes:null, job:null, lnk:null },
   { _id:'ba77', t:'bpa-t1', p:'bpa', name:'Zoeller',                   cid:null, freq:null, st:'production', hd:add(177), csm:'Maria L.', notes:null, job:null, lnk:null },
-
-  // ── BPA — Churned ────────────────────────────────────────────────────────
   { _id:'bc0', t:'bpa-t2', p:'bpa', name:'Aeromotive', cid:null, freq:null, st:'churned', hd:null, csm:'Maria L.', notes:'Ignored / churned', job:null, lnk:null },
   { _id:'bc1', t:'bpa-t2', p:'bpa', name:'Jackson',    cid:null, freq:null, st:'churned', hd:null, csm:'Maria L.', notes:'Ignored / churned', job:null, lnk:null },
   { _id:'bc2', t:'bpa-t2', p:'bpa', name:'Pertronix',  cid:null, freq:null, st:'churned', hd:null, csm:'Maria L.', notes:'Ignored / churned', job:null, lnk:null },
@@ -225,7 +285,7 @@ const CUSTOMERS_RAW = [
   { _id:'wm12', t:'wmap-t1', p:'wmap', name:'EnhancedLaserProducts', cid:null, freq:null, st:'production', hd:add(132), csm:'David R.', notes:'Industrial / B2B',       job:'(WM) EnhancedLaserProducts - Full Discovery',    lnk:'https://orchestration.wiser.com/jobs/698640018f3940f5c55b495a' },
   { _id:'wm13', t:'wmap-t1', p:'wmap', name:'Prym MAP',              cid:null, freq:null, st:'production', hd:add(134), csm:'David R.', notes:'Pet Supplies',            job:'(WM) Prym - Full Discovery',                     lnk:'https://orchestration.wiser.com/jobs/699157dd76f68e44eb2e1263' },
 
-  // ── NUMAP — Tranche 1 (20 customers) ─────────────────────────────────────
+  // ── NUMAP ─────────────────────────────────────────────────────────────────
   { _id:'nm1-0',  t:'nm-t1', p:'numap', name:'Rockford Fosgate 5730',          cid:null, freq:'Yearly',             st:'production', hd:add(85),  csm:'Priya N.', notes:'Consumer Electronics > Audio > Automotive', job:null,                                                     lnk:null },
   { _id:'nm1-1',  t:'nm-t1', p:'numap', name:'Canon 672 Printer',              cid:null, freq:'Weekly or Monthly',  st:'production', hd:add(87),  csm:'Priya N.', notes:'Consumer Electronics',                     job:'(CA) Canon672_Printer - Full Discovery',           lnk:'https://orchestration.wiser.com/jobs/69987342871be482a7af11be' },
   { _id:'nm1-2',  t:'nm-t1', p:'numap', name:'Motorola Solutions Canada',      cid:null, freq:'Monthly or Quarterly',st:'production',hd:add(89),  csm:'Priya N.', notes:'Consumer Electronics',                     job:null,                                                     lnk:null },
@@ -246,8 +306,6 @@ const CUSTOMERS_RAW = [
   { _id:'nm1-17', t:'nm-t1', p:'numap', name:'Canon 672',                      cid:null, freq:'Weekly or Monthly',  st:'production', hd:add(119), csm:'Priya N.', notes:'Consumer Electronics',                     job:null,                                                     lnk:null },
   { _id:'nm1-18', t:'nm-t1', p:'numap', name:'Sony IPSA',                      cid:null, freq:'Monthly or Quarterly',st:'production',hd:add(121), csm:'Priya N.', notes:'Consumer Electronics',                     job:null,                                                     lnk:null },
   { _id:'nm1-19', t:'nm-t1', p:'numap', name:'Sony Electronics',               cid:null, freq:'Weekly',             st:'production', hd:add(123), csm:'Priya N.', notes:'Consumer Electronics',                     job:null,                                                     lnk:null },
-
-  // ── NUMAP — Tranche 2 (7 customers) ──────────────────────────────────────
   { _id:'nm2-0', t:'nm-t2', p:'numap', name:'Goodman Canada',             cid:null, freq:'Quarterly',            st:'production', hd:add(105), csm:'Priya N.', notes:'Heating and Cooling / HVAC',             job:null, lnk:null },
   { _id:'nm2-1', t:'nm-t2', p:'numap', name:'Goodman Turk Bundle MAP',    cid:null, freq:'Quarterly',            st:'production', hd:add(107), csm:'Priya N.', notes:'Heating and Cooling / HVAC',             job:null, lnk:null },
   { _id:'nm2-2', t:'nm-t2', p:'numap', name:'Philips Domestic Appl. US',  cid:null, freq:'Half yearly',         st:'production', hd:add(109), csm:'Priya N.', notes:'Domestic Appliances',                    job:null, lnk:null },
@@ -255,8 +313,6 @@ const CUSTOMERS_RAW = [
   { _id:'nm2-4', t:'nm-t2', p:'numap', name:'Motorola',                   cid:null, freq:'Monthly or Quarterly',st:'production', hd:add(113), csm:'Priya N.', notes:'Professional Communications Equipment',  job:null, lnk:null },
   { _id:'nm2-5', t:'nm-t2', p:'numap', name:'Philips Lighting',           cid:null, freq:'Discontinue',         st:'production', hd:add(115), csm:'Priya N.', notes:'Home Improvement > Lighting',            job:null, lnk:null },
   { _id:'nm2-6', t:'nm-t2', p:'numap', name:'Goodman 5223',               cid:null, freq:'Quarterly',           st:'production', hd:add(117), csm:'Priya N.', notes:'Heating and Cooling / HVAC',             job:null, lnk:null },
-
-  // ── NUMAP — Tranche 3 (9 customers) ──────────────────────────────────────
   { _id:'nm3-0', t:'nm-t3', p:'numap', name:'Livon 578',          cid:null, freq:'Yearly',              st:'production', hd:add(125), csm:'Tom W.', notes:'Health & Beauty > Supplements',  job:null,                                       lnk:null },
   { _id:'nm3-1', t:'nm-t3', p:'numap', name:'Citizen International',cid:null,freq:'Quarterly',           st:'production', hd:add(127), csm:'Tom W.', notes:'Accessories > Watches',          job:null,                                       lnk:null },
   { _id:'nm3-2', t:'nm-t3', p:'numap', name:'Steve Madden 5376',   cid:null, freq:'Monthly or Quarterly',st:'production', hd:add(129), csm:'Tom W.', notes:'Apparel',                        job:null,                                       lnk:null },
