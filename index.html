@@ -5,449 +5,1153 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Migration Tracker</title>
 <style>
-:root{--bg:#fff;--bg2:#f7f7f5;--bg3:#f0efe9;--text:#1a1a18;--text2:#6b6b67;--text3:#9d9d98;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--blue-bg:#E6F1FB;--blue-text:#0C447C;--blue-bd:#85B7EB;--green-bg:#EAF3DE;--green-text:#3B6D11;--amber-bg:#FAEEDA;--amber-text:#633806;--red-bg:#FCEBEB;--red-text:#A32D2D;--gray-bg:#F1EFE8;--gray-text:#5F5E5A;--r:8px;--rl:12px}
-@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--text:#f0efe9;--text2:#a0a09a;--text3:#6b6b67;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);--blue-bg:#0C447C;--blue-text:#B5D4F4;--green-bg:#27500A;--green-text:#C0DD97;--amber-bg:#633806;--amber-text:#FAC775;--red-bg:#791F1F;--red-text:#F7C1C1;--gray-bg:#444441;--gray-text:#D3D1C7}}
+:root{--bg:#fff;--bg2:#f7f7f5;--bg3:#f0efe9;--text:#1a1a18;--text2:#6b6b67;--text3:#9d9d98;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--blue-bg:#E6F1FB;--blue-text:#0C447C;--blue-bd:#85B7EB;--green-bg:#EAF3DE;--green-text:#3B6D11;--amber-bg:#FAEEDA;--amber-text:#633806;--purple-bg:#EEEDFE;--purple-text:#3C3489;--red-bg:#FCEBEB;--red-text:#A32D2D;--r:8px;--rl:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;--text:#f0efe9;--text2:#a0a09a;--text3:#6b6b67;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);--blue-bg:#0C447C;--blue-text:#B5D4F4;--blue-bd:#185FA5;--green-bg:#27500A;--green-text:#C0DD97;--amber-bg:#633806;--amber-text:#FAC775;--purple-bg:#26215C;--purple-text:#CECBF6;--red-bg:#791F1F;--red-text:#F7C1C1}}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--text);background:var(--bg)}
-#app{max-width:1400px;margin:0 auto;padding:20px 16px 40px}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.topbar h1{font-size:18px;font-weight:500}
-.topbar p{font-size:12px;color:var(--text2);margin-top:2px}
-.stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
-.stat{background:var(--bg2);border-radius:var(--r);padding:10px 12px}
+#app{max-width:1300px;margin:0 auto;padding:20px 16px 60px}
+
+/* ── Stats bar ── */
+.stats-bar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--r);padding:10px 12px}
 .stat-label{font-size:11px;color:var(--text2);margin-bottom:3px}
 .stat-val{font-size:22px;font-weight:500;line-height:1}
 .stat-sub{font-size:11px;color:var(--text2);margin-top:3px}
-.pipe-wrap{background:var(--bg2);border-radius:var(--r);padding:10px 14px;margin-bottom:14px}
-.pipe-hdr{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
-.bar-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;display:flex;gap:2px}
-.bar-seg{height:100%;border-radius:2px}
-.leg-row{display:flex;gap:14px;margin-top:6px;flex-wrap:wrap}
-.leg{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
-.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── Tabs ── */
 .tabs{display:flex;border-bottom:.5px solid var(--border);margin-bottom:14px;overflow-x:auto}
 .tab{padding:7px 16px;cursor:pointer;font-size:12px;white-space:nowrap;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px}
 .tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
 .tab-badge{background:var(--bg2);color:var(--text2);font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px}
 .tab-content{display:none}.tab-content.active{display:block}
-.toolbar{display:flex;gap:7px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
-.toolbar input{flex:1;min-width:140px;height:30px;font-size:12px;padding:0 10px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--bg);color:var(--text);outline:none}
-.toolbar input:focus{border-color:#0078d4}
-.fbtn{height:30px;padding:0 10px;font-size:11px;border-radius:var(--r);border:.5px solid var(--border2);background:var(--bg);color:var(--text2);cursor:pointer}
-.fbtn.on{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-bd)}
-.save-ind{font-size:11px;color:var(--text3);margin-left:auto}
-.save-ind.saving{color:#0078d4}.save-ind.saved{color:var(--green-text)}
-.tbl{border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
-.col-hdr{display:grid;grid-template-columns:26px minmax(0,1.6fr) 88px repeat(5,minmax(0,1fr)) minmax(0,1.1fr);background:var(--bg2);border-bottom:.5px solid var(--border)}
-.hc{padding:7px 8px;font-size:11px;font-weight:500;color:var(--text2)}
-.hc.ctr{text-align:center}
-.row-wrap{border-bottom:.5px solid var(--border)}.row-wrap:last-child{border-bottom:none}
-.tr-row{display:grid;grid-template-columns:26px minmax(0,1.6fr) 88px repeat(5,minmax(0,1fr)) minmax(0,1.1fr);align-items:center;cursor:pointer;background:var(--bg2)}
-.tr-row:hover{background:var(--bg3)}
-.tc{padding:8px 8px;font-size:12px}
-.chev{font-size:9px;color:var(--text3);transition:transform .15s;display:inline-block}
-.chev.open{transform:rotate(90deg)}
-.badge-cnt{background:var(--bg);color:var(--text2);font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px}
-.note-chip{font-size:10px;color:var(--amber-text);background:var(--amber-bg);padding:1px 6px;border-radius:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle}
-.cat-chip{font-size:10px;color:var(--gray-text);background:var(--gray-bg);padding:1px 6px;border-radius:3px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block}
-.cust-rows{background:var(--bg)}
-.c-row{display:grid;grid-template-columns:26px 26px minmax(0,1.6fr) 88px repeat(5,minmax(0,1fr)) minmax(0,1.1fr);align-items:center;border-bottom:.5px solid var(--border);cursor:pointer}
-.c-row:last-child{border-bottom:none}.c-row:hover{background:var(--bg2)}
-.cc{padding:7px 8px;font-size:11px}
-.task-detail-rows{background:var(--bg);border-top:.5px solid var(--border)}
-.td-row{display:grid;grid-template-columns:52px 26px minmax(0,1fr) 110px 110px;align-items:center;border-bottom:.5px solid var(--border);cursor:pointer}
-.td-row:hover{background:var(--bg2)}.td-row:last-child{border-bottom:none}
-.step-rows{background:var(--bg)}
-.step-row{display:grid;grid-template-columns:78px 1fr;align-items:start;border-bottom:.5px solid var(--border);padding:7px 8px 7px 0}
-.step-row:last-child{border-bottom:none}
-.cbx{width:14px;height:14px;border-radius:3px;border:.5px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;margin:2px 0 0 28px;transition:background .1s}
-.cbx.done{background:#3B6D11;border-color:#3B6D11}
+
+/* ── Save indicator ── */
+.save-ind{font-size:11px;color:var(--text3)}
+.save-ind.saving{color:#0078d4}.save-ind.saved{color:var(--green-text)}.save-ind.err{color:var(--red-text)}
+
+/* ── Pills ── */
 .pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:500;white-space:nowrap}
 .p-done{background:var(--green-bg);color:var(--green-text)}
 .p-prog{background:var(--blue-bg);color:var(--blue-text)}
-.p-wait{background:var(--gray-bg);color:var(--gray-text)}
-.p-dis{background:var(--red-bg);color:var(--red-text)}
-.pill-sel{border:none;background:transparent;font-size:10px;font-weight:500;cursor:pointer;padding:0;appearance:none;width:100%}
-.pbar-wrap{display:flex;align-items:center;gap:5px}
-.pbar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;flex:1;min-width:30px}
+.p-wait{background:#F1EFE8;color:#5F5E5A}
+.p-churn{background:var(--red-bg);color:var(--red-text)}
+
+/* ── Chevron ── */
+.chev{font-size:9px;color:var(--text3);transition:transform .15s;display:inline-block}
+.chev.open{transform:rotate(90deg)}
+
+/* ── Progress bar ── */
+.pbar-wrap{display:flex;align-items:center;gap:4px}
+.pbar{height:3px;border-radius:2px;background:var(--bg3);overflow:hidden}
 .pbar-fill{height:100%;border-radius:2px}
-.date-cell{font-size:10px;color:var(--text2)}
-.date-cell.overdue{color:var(--red-text);font-weight:500}
-.date-cell.soon{color:var(--amber-text);font-weight:500}
-input[type=date]{font-size:10px;color:var(--text2);background:transparent;border:none;cursor:pointer;width:90px}
-input[type=date]:focus{outline:none;color:var(--text)}
-.csm-wrap{display:flex;flex-direction:column;gap:4px}
-.csm-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;background:var(--bg2);padding:2px 7px;border-radius:10px;color:var(--text2)}
-.csm-av{width:16px;height:16px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);font-size:8px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.inline-edit{background:transparent;border:none;border-bottom:1px solid var(--border2);font-size:11px;color:var(--text);width:100%;outline:none}
-.inline-edit:focus{border-bottom-color:#0078d4}
-.cmt-display{font-size:11px;color:var(--text2);background:var(--bg2);padding:3px 8px;border-radius:var(--r);margin-top:3px;cursor:pointer}
-.job-link{font-size:10px;color:var(--blue-text);background:var(--blue-bg);padding:1px 6px;border-radius:3px;text-decoration:none}
-.step-label{font-size:11px}
-.step-label.done{text-decoration:line-through;color:var(--text2)}
+
+/* ── Inline editable fields ── */
+.date-wrap{position:relative;display:inline-flex;align-items:center}
+.date-display{font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;border-bottom:.5px solid var(--border2);padding:0 1px;line-height:1.4}
+.date-display:hover{border-bottom-color:#0078d4;color:var(--text)}
+.date-native{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.csm-wrap{position:relative;display:inline-flex;align-items:center}
+.csm-display{font-size:10px;color:var(--text2);white-space:nowrap;cursor:text;border-bottom:.5px solid var(--border2);padding:0 1px;line-height:1.4;min-width:36px}
+.csm-display:hover{border-bottom-color:#0078d4}
+.csm-native{position:absolute;inset:0;opacity:0;font-size:10px;width:100%;height:100%;cursor:text;background:transparent;border:none;outline:none}
+.csm-native:focus{opacity:1;background:var(--bg);color:var(--text);border-bottom:.5px solid #0078d4;padding:0 1px}
+.csm-native:focus+.csm-display{opacity:0}
+.inline-field{background:transparent;border:none;border-bottom:.5px solid var(--border2);font-size:11px;color:var(--text);outline:none;font-family:inherit;padding:0 1px}
+.inline-field:focus{border-bottom-color:#0078d4}
+
+/* ── Table shell ── */
+.tbl{border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:12px}
+
+/* ── Column header ── */
+.col-hdr{display:grid;grid-template-columns:12px minmax(0,1.8fr) 54px 54px 54px 80px 80px;background:var(--bg2);border-bottom:.5px solid var(--border);padding:5px 10px;gap:6px;align-items:center}
+.ch{font-size:10px;font-weight:500;color:var(--text2);text-align:center}
+.ch:nth-child(2){text-align:left}
+
+/* ── L0 Tranche row ── */
+.tr-row{display:grid;grid-template-columns:12px minmax(0,1.8fr) 54px 54px 54px 80px 80px;align-items:center;background:var(--bg);cursor:pointer;border-bottom:.5px solid var(--border);border-left:3px solid var(--border2);padding:5px 10px 5px 9px;gap:6px}
+.tr-row:hover{background:var(--bg2)}
+.tr-actions{display:none;gap:4px;align-items:center}
+.tr-row:hover .tr-actions{display:flex}
+.icon-btn{font-size:10px;color:var(--text3);background:none;border:.5px solid var(--border2);border-radius:4px;padding:1px 6px;cursor:pointer;white-space:nowrap}
+.icon-btn:hover{color:var(--text);background:var(--bg2)}
+.icon-btn.danger:hover{color:var(--red-text);border-color:var(--red-text)}
+
+/* ── L1 Customer row ── */
+.c-row{display:grid;grid-template-columns:12px 12px minmax(0,1.8fr) 54px 54px 54px 80px 80px;align-items:center;background:var(--bg);cursor:pointer;border-bottom:.5px solid var(--border);padding:5px 10px 5px 18px;gap:6px;position:relative}
+.c-row:hover{background:var(--bg2)}
+.c-row.churned-row{opacity:0.45}
+.c-row.churned-row:hover{opacity:0.65}
+.churn-hover{display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);align-items:center;gap:3px;font-size:10px;color:var(--text3);cursor:pointer;user-select:none;z-index:2;background:var(--bg2);padding:2px 6px;border-radius:4px;border:.5px solid var(--border)}
+.c-row:hover .churn-hover{display:flex}
+.churn-cbx{width:12px;height:12px;border-radius:2px;border:.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;flex-shrink:0}
+.churn-cbx.on{background:var(--red-text);border-color:var(--red-text)}
+.cc{font-size:11px;text-align:center}
+.cc:nth-child(3){text-align:left}
+
+/* ── Churned section ── */
+.churned-hdr{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 18px;background:var(--bg2);border-bottom:.5px solid var(--border);cursor:pointer}
+.churned-hdr:hover{filter:brightness(.97)}
+
+/* ── L2 Phase band ── */
+.phase-band{border-bottom:.5px solid var(--border)}
+.phase-band:last-child{border-bottom:none}
+.phase-row{display:flex;align-items:center;padding:5px 10px 5px 26px;cursor:pointer;gap:6px;border-left:3px solid transparent}
+.phase-row:hover{filter:brightness(.97)}
+.ph1-row{background:var(--blue-bg);border-left-color:#185FA5}
+.ph2-row{background:var(--green-bg);border-left-color:#3B6D11}
+.so-row{background:var(--purple-bg);border-left-color:#7F77DD}
+.phase-title{font-size:11px;font-weight:500;flex:1}
+.ph1-row .phase-title{color:var(--blue-text)}
+.ph2-row .phase-title{color:var(--green-text)}
+.so-row .phase-title{color:var(--purple-text)}
+
+/* ── L3 Task row ── */
+.task-row{border-bottom:.5px solid var(--border)}
+.task-row:last-child{border-bottom:none}
+.task-hdr{display:flex;align-items:center;padding:5px 10px 5px 42px;cursor:pointer;gap:6px}
+.task-hdr:hover{background:var(--bg2)}
+.task-name{font-size:11px;font-weight:500}
+.task-meta{font-size:10px;color:var(--text2);margin-top:1px}
+
+/* ── L4 Detail / checklist ── */
+.task-detail{border-top:.5px solid var(--border);background:var(--bg2)}
+.checklist{padding:3px 10px 6px 56px}
+.cl-row{display:flex;align-items:flex-start;gap:6px;padding:3px 0;border-bottom:.5px solid var(--border)}
+.cl-row:last-child{border-bottom:none}
+.cl-label{font-size:11px;line-height:1.4}
+.cl-label.done{text-decoration:line-through;color:var(--text2)}
+.cl-sub{font-size:10px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:3px}
+.cl-tag{font-size:9px;padding:1px 4px;border-radius:3px;margin-left:4px;font-weight:500}
+.tag-ops{background:var(--blue-bg);color:var(--blue-text)}
+.tag-gtm{background:var(--green-bg);color:var(--green-text)}
+.cbx{width:12px;height:12px;border-radius:2px;border:.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;cursor:pointer;margin-top:2px}
+.cbx.done{background:#3B6D11;border-color:#3B6D11}
+.so-checklist{padding:3px 10px 6px 42px;background:var(--bg2)}
+.task-info-row{display:flex;gap:10px;padding:3px 10px 3px 56px;flex-wrap:wrap;align-items:center;border-bottom:.5px solid var(--border);background:var(--bg2)}
+.ti{font-size:10px;color:var(--text2);display:flex;align-items:center;gap:3px}
+.ti b{color:var(--text);font-weight:500}
+.so-info-row{display:flex;gap:10px;padding:3px 10px 3px 42px;flex-wrap:wrap;align-items:center;border-bottom:.5px solid var(--border);background:var(--bg2)}
+
+/* ── Iterative block ── */
+.iter-wrap{padding:5px 10px 8px 56px;background:var(--bg2);border-top:.5px solid var(--border)}
+.iter-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.cycle-badge{font-size:10px;background:var(--amber-bg);color:var(--amber-text);padding:1px 7px;border-radius:8px}
+.cycle-track{display:flex;margin-bottom:4px}
+.ct-step{flex:1;text-align:center;padding:3px;font-size:10px;border:.5px solid var(--border2);border-right:none;background:var(--bg);color:var(--text2)}
+.ct-step:first-child{border-radius:5px 0 0 5px}
+.ct-step:last-child{border-right:.5px solid var(--border2);border-radius:0 5px 5px 0}
+.ct-step.ct-active{background:var(--blue-bg);color:var(--blue-text);font-weight:500;border-color:var(--blue-bd)}
+.ct-step.ct-done{background:var(--green-bg);color:var(--green-text);border-color:#97C459}
+.iter-note{font-size:10px;color:var(--text2);font-style:italic;margin-bottom:5px}
+.iter-section{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;padding:4px 0 2px}
+.cl-simple{display:flex;align-items:flex-start;gap:6px;padding:3px 0;border-bottom:.5px solid var(--border)}
+.cl-simple:last-child{border-bottom:none}
+.add-cycle-btn{font-size:10px;color:var(--blue-text);background:var(--blue-bg);border:.5px solid var(--blue-bd);border-radius:5px;padding:2px 8px;cursor:pointer;margin-top:5px;display:inline-block}
+
+/* ── Tranche edit modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--rl);border:.5px solid var(--border);padding:20px;width:340px;max-width:90vw}
+.modal-title{font-size:14px;font-weight:500;margin-bottom:14px}
+.modal-field{margin-bottom:10px}
+.modal-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px}
+.modal-field input,.modal-field select{width:100%;font-size:12px;padding:6px 8px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);outline:none}
+.modal-field input:focus,.modal-field select:focus{border-color:#0078d4}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.btn{font-size:12px;padding:6px 14px;border-radius:var(--r);border:.5px solid var(--border2);cursor:pointer;background:var(--bg);color:var(--text)}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:#0078d4;color:#fff;border-color:#0078d4}
+.btn.primary:hover{background:#106ebe}
+.btn.danger{color:var(--red-text);border-color:var(--red-text)}
+.btn.danger:hover{background:var(--red-bg)}
+
+/* ── Add tranche button ── */
+.add-tranche-btn{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);background:none;border:.5px dashed var(--border2);border-radius:var(--r);padding:7px 12px;cursor:pointer;width:100%;margin-bottom:12px}
+.add-tranche-btn:hover{color:var(--text);border-color:var(--border2);background:var(--bg2)}
+
+/* ── Move dropdown ── */
+.move-select{font-size:10px;background:var(--bg);border:.5px solid var(--border2);border-radius:4px;color:var(--text);padding:1px 4px;cursor:pointer;max-width:120px}
+
+/* ── Note chip ── */
+.note-chip{font-size:10px;color:var(--amber-text);background:var(--amber-bg);padding:1px 6px;border-radius:3px;margin-left:4px}
+
+/* ── Summary grid ── */
+.sum-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.sum-card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:12px 14px}
+.sum-card-title{font-size:12px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sum-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:.5px solid var(--border);font-size:11px}
+.sum-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
-
-<div id="app" style="max-width:1400px;margin:0 auto;padding:20px 16px 40px">
-  <div class="topbar">
-    <div><h1>Migration tracker</h1><p id="last-upd">Loading…</p></div>
-    <div style="font-size:12px;color:var(--text2)">Last saved: <span id="save-time">—</span></div>
+<div id="app">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div>
+      <div style="font-size:18px;font-weight:500">Migration tracker</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px" id="last-upd">Loading…</div>
+    </div>
+    <div style="font-size:11px;color:var(--text2)">Last saved: <span id="save-time">—</span> <span class="save-ind" id="save-ind"></span></div>
   </div>
-  <div class="stat-row" id="stat-row"></div>
-  <div class="pipe-wrap" id="pipe-bar"></div>
+  <div class="stats-bar" id="stats-bar"></div>
   <div class="tabs" id="main-tabs"></div>
   <div id="tab-contents"></div>
 </div>
 
-<!-- Edit checklists.js to update step definitions per platform -->
-<!-- Edit data.js to add/edit customers and tranches              -->
+<!-- Tranche edit/add modal -->
+<div class="modal-overlay" id="tranche-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Edit tranche</div>
+    <div class="modal-field"><label>Name</label><input id="m-name" type="text"></div>
+    <div class="modal-field"><label>Phase</label>
+      <select id="m-phase">
+        <option>Discovery</option><option>Legacy migration</option>
+        <option>Matching</option><option>Data quality</option><option>Monitoring</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>CSM</label><input id="m-csm" type="text"></div>
+    <div class="modal-field"><label>Go-live date</label><input id="m-golive" type="date"></div>
+    <div class="modal-field"><label>Notes</label><input id="m-notes" type="text"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn danger" id="modal-delete-btn" onclick="deleteTranche()" style="display:none">Delete tranche</button>
+      <button class="btn primary" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-title">Delete tranche?</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px" id="confirm-msg"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeConfirm()">Cancel</button>
+      <button class="btn danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script src="checklists.js"></script>
 <script src="data.js"></script>
-
 <script>
-// ── Constants ────────────────────────────────────────────────────────────────
-const TASKS = ['Discovery','Crawl append','Matching','Data quality','Monitoring'];
-const TABS  = [
-  {key:'ngpi', label:'NGPI',      count:90},
-  {key:'bpa',  label:'BPA',       count:82},
-  {key:'wmap', label:'Wiser MAP', count:14},
-  {key:'numap',label:'NuMap',     count:36}
-];
+// ── SharePoint config ────────────────────────────────────────────────────────
+var SP_SITE   = 'https://wisersolutionsinc.sharepoint.com/sites/TEAM-Delivery-Polaris';
+var SP_TASKS  = '3740e890-8692-4a59-be63-ce70c9d9ab85';
+var SP_TRANCH = '307d3677-f079-424b-87e4-49321bb99e81';
+var SP_READY  = true;
 
 // ── State ────────────────────────────────────────────────────────────────────
-let S = {tranches:[], customers:[], tasks:[]};
+var S = { tranches:[], customers:[], tasks:[] };
+var spTaskIds    = {};   // task _id  -> SP item Id
+var spTranchIds  = {};   // tranche _id -> SP item Id
+var spCustIds    = {};   // customer _id -> SP item Id (for TrancheId + Churned)
+var openT = new Set(), openC = new Set(), openTk = new Set();
+var activeTab = 'summary';
+var tabSearch = {summary:'',ngpi:'',bpa:'',wmap:'',numap:''};
+var modalMode = null, modalTranchId = null;
+var confirmCb = null;
+var cycles = {};   // customer _id -> cycle count
 
-// ── Save (memory only — "Saved" confirms UI update, not persistence) ─────────
-// To wire up SharePoint later: replace the body of doSave() with a fetch PATCH.
-let saveTimer = null;
-function scheduleSave(list, id, fields) {
-  setInd('saving');
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(function() { setInd('saved'); }, 400);
+// ── SharePoint helpers ───────────────────────────────────────────────────────
+function spApi(listId) {
+  return SP_SITE + '/_api/web/lists/getbytitle(\'MigrationTaskState\')/items'.replace('MigrationTaskState',
+    listId === SP_TASKS ? 'MigrationTaskState' : 'MigrationTranches');
 }
-function setInd(s) {
-  var el = document.querySelector('.save-ind');
+function spHeaders(digest) {
+  var h = { Accept:'application/json;odata=verbose', 'Content-Type':'application/json;odata=verbose' };
+  if (digest) h['X-RequestDigest'] = digest;
+  return h;
+}
+function getDigest() {
+  return fetch(SP_SITE + '/_api/contextinfo', { method:'POST', headers:{ Accept:'application/json;odata=verbose' }, credentials:'include' })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ return j.d.GetContextWebInformation.FormDigestValue; });
+}
+function spGet(listId, filter) {
+  var url = spApi(listId) + '?$top=2000' + (filter ? '&$filter=' + filter : '');
+  return fetch(url, { credentials:'include', headers:{ Accept:'application/json;odata=verbose' } })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ return j.d.results; });
+}
+function spCreate(listId, fields, type) {
+  return getDigest().then(function(d) {
+    fields.__metadata = { type: type };
+    return fetch(spApi(listId), { method:'POST', credentials:'include', headers:spHeaders(d), body:JSON.stringify(fields) })
+      .then(function(r){ return r.json(); }).then(function(j){ return j.d; });
+  });
+}
+function spUpdate(listId, itemId, fields, type) {
+  return getDigest().then(function(d) {
+    fields.__metadata = { type: type };
+    return fetch(spApi(listId) + '(' + itemId + ')', {
+      method:'POST', credentials:'include',
+      headers:Object.assign(spHeaders(d), { 'IF-MATCH':'*', 'X-HTTP-Method':'MERGE' }),
+      body:JSON.stringify(fields)
+    });
+  });
+}
+function spDelete(listId, itemId) {
+  return getDigest().then(function(d) {
+    return fetch(spApi(listId) + '(' + itemId + ')', {
+      method:'POST', credentials:'include',
+      headers:Object.assign(spHeaders(d), { 'IF-MATCH':'*', 'X-HTTP-Method':'DELETE' })
+    });
+  });
+}
+
+// ── Save indicator ───────────────────────────────────────────────────────────
+var saveTimer = null;
+function setInd(s, msg) {
+  var el = document.getElementById('save-ind');
   var st = document.getElementById('save-time');
-  if (el) { el.className = 'save-ind ' + s; el.textContent = s==='saving'?'Saving…':s==='saved'?'Saved':'Save failed'; }
-  if (s === 'saved' && st) st.textContent = new Date().toLocaleTimeString();
+  if (!el) return;
+  el.className = 'save-ind ' + (s||'');
+  el.textContent = msg || (s==='saving'?'Saving…':s==='saved'?'Saved':s==='err'?'Save failed':'');
+  if (s==='saved' && st) st.textContent = new Date().toLocaleTimeString();
 }
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
-function loadDemo() {
-  S.tranches = TRANCHES;
-
+function init() {
+  // Build customers from data.js
   S.customers = CUSTOMERS_RAW.map(function(c) {
-    return {
-      _id:         c._id,
-      TrancheId:   c.t,
-      Platform:    c.p,
-      Title:       c.name,
-      CustomerId:  c.cid  || null,
-      Frequency:   c.freq || null,
-      Status:      c.st,
-      HandoffDate: c.hd   || null,
-      CSM:         c.csm,
-      Notes:       c.notes || null,
-      Job:         c.job  || null,
-      JobLink:     c.lnk  || null
-    };
+    return { _id:c._id, TrancheId:c.t, Platform:c.p, Title:c.name,
+      CustomerId:c.cid||null, Frequency:c.freq||null, Status:c.st,
+      HandoffDate:c.hd||null, CSM:c.csm, Notes:c.notes||null,
+      Job:c.job||null, JobLink:c.lnk||null, Churned:false };
   });
+  // Build tranches from data.js (will be overridden by SP on load)
+  S.tranches = TRANCHES.map(function(t) {
+    return Object.assign({}, t, { spId: null });
+  });
+  // Build tasks
+  buildTasks();
+  document.getElementById('last-upd').textContent = 'Loading from SharePoint…';
+  renderAll();
+  if (SP_READY) loadFromSP();
+}
 
+function buildTasks() {
   S.tasks = [];
-  var phaseIdx = {Discovery:0, Matching:2, 'Data quality':3};
   S.customers.forEach(function(c) {
-    var tr  = S.tranches.find(function(x) { return x._id === c.TrancheId; });
-    var cur = (phaseIdx[tr && tr.Phase] !== undefined) ? phaseIdx[tr.Phase] : 0;
-    TASKS.forEach(function(task, ti) {
+    if (c.Churned) return;
+    var tr = S.tranches.find(function(x){ return x._id === c.TrancheId; });
+    var phaseIdx = { Discovery:0, Matching:0, 'Data quality':0 };
+    var cur = tr ? (phaseIdx[tr.Phase] !== undefined ? phaseIdx[tr.Phase] : 0) : 0;
+    ALL_TASKS.forEach(function(task, ti) {
       var pct = 0;
-      if (c.Status === 'churned')   pct = 0;
-      else if (ti < cur)            pct = 100;
-      else if (ti === cur)          pct = (ti === 0 && c.Job) ? 100 : (ti === 0 ? 40 : 30);
-      var baseDate = new Date('2026-04-02');
-      baseDate.setDate(baseDate.getDate() + ti * 25 + (c._id.split('').reduce(function(a,ch){return a+ch.charCodeAt(0);},0) % 12));
-      var stepDefs = getStepDefs(c.Platform, task);
+      var stepDefs = getStepDefs(task);
       var steps = stepDefs.map(function(s, si) {
-        return { label: s, done: si < Math.floor(pct / 100 * stepDefs.length), comment: '' };
+        return { label:s, done: si < Math.floor(pct/100*stepDefs.length), comment:'' };
       });
       S.tasks.push({
-        _id:         'tk-' + c._id + '-' + ti,
-        CustomerId:  c._id,
-        TrancheId:   c.TrancheId,
-        Platform:    c.Platform,
-        TaskName:    task,
-        TaskIndex:   ti,
-        Status:      pct === 100 ? 'Complete' : pct > 0 ? 'In progress' : 'Not started',
-        Pct:         pct,
-        TargetDate:  baseDate.toISOString().split('T')[0],
-        StepsJson:   JSON.stringify(steps)
+        _id: 'tk-'+c._id+'-'+ti,
+        CustomerId: c._id, TrancheId: c.TrancheId, Platform: c.Platform,
+        TaskName: task, TaskIndex: ti,
+        Status: 'Not started', Pct: 0,
+        TargetDate: null, StepsJson: JSON.stringify(steps),
+        CycleData: null
       });
     });
   });
+}
 
-  document.getElementById('last-upd').textContent = 'Apr 2, 2026';
+// ── Load from SharePoint ─────────────────────────────────────────────────────
+function loadFromSP() {
+  Promise.all([
+    spGet(SP_TRANCH),
+    spGet(SP_TASKS)
+  ]).then(function(results) {
+    var trItems = results[0], taskItems = results[1];
+
+    // Merge tranches
+    trItems.forEach(function(item) {
+      var tr = S.tranches.find(function(t){ return t._id === item.Title || t.Title === item.Title2; });
+      // Match by SP item's LocalId field or Title
+      var match = S.tranches.find(function(t){ return t._id === item.LocalId; });
+      if (!match) match = S.tranches.find(function(t){ return t.Title === item.Title; });
+      if (match) {
+        match.spId = item.Id;
+        spTranchIds[match._id] = item.Id;
+        if (item.Phase) match.Phase = item.Phase;
+        if (item.CSM)   match.CSM   = item.CSM;
+        if (item.GoLive) match.GoLive = item.GoLive.split('T')[0];
+        if (item.Notes) match.Notes = item.Notes;
+        if (item.Title) match.Title = item.Title;
+      }
+    });
+
+    // Merge task state
+    taskItems.forEach(function(item) {
+      var tk = S.tasks.find(function(t){ return t._id === item.Title; });
+      if (!tk) return;
+      spTaskIds[item.Title] = item.Id;
+      if (item.Status)     tk.Status     = item.Status;
+      if (item.Pct != null) tk.Pct       = item.Pct;
+      if (item.TargetDate)  tk.TargetDate = item.TargetDate.split('T')[0];
+      if (item.StepsJson)   tk.StepsJson  = item.StepsJson;
+      if (item.CycleData)   tk.CycleData  = item.CycleData;
+      if (item.CSM) {
+        var c = S.customers.find(function(x){ return x._id === tk.CustomerId; });
+        if (c) c.CSM = item.CSM;
+      }
+      // Tranche assignment override
+      if (item.TrancheId) {
+        var c2 = S.customers.find(function(x){ return x._id === tk.CustomerId; });
+        if (c2) c2.TrancheId = item.TrancheId;
+        tk.TrancheId = item.TrancheId;
+      }
+      // Churn state
+      if (item.Churned === true || item.Churned === 'true') {
+        var c3 = S.customers.find(function(x){ return x._id === tk.CustomerId; });
+        if (c3) c3.Churned = true;
+      }
+    });
+
+    document.getElementById('last-upd').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    renderAll();
+  }).catch(function(e) {
+    console.warn('SP load failed, using local state', e);
+    document.getElementById('last-upd').textContent = 'Offline mode';
+    renderAll();
+  });
+}
+
+// ── Persist task state ───────────────────────────────────────────────────────
+function saveTask(tk, extra) {
+  setInd('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() {
+    if (!SP_READY) { setInd('saved'); return; }
+    var fields = Object.assign({
+      Status: tk.Status, Pct: tk.Pct,
+      StepsJson: tk.StepsJson,
+      TrancheId: tk.TrancheId
+    }, extra||{});
+    var spId = spTaskIds[tk._id];
+    if (spId) {
+      spUpdate(SP_TASKS, spId, fields, 'SP.Data.MigrationTaskStateListItem')
+        .then(function(){ setInd('saved'); })
+        .catch(function(){ setInd('err'); });
+    } else {
+      fields.Title = tk._id;
+      spCreate(SP_TASKS, fields, 'SP.Data.MigrationTaskStateListItem')
+        .then(function(item){ spTaskIds[tk._id] = item.Id; setInd('saved'); })
+        .catch(function(){ setInd('err'); });
+    }
+  }, 600);
+}
+
+// ── Tranche CRUD ─────────────────────────────────────────────────────────────
+function openAddTranche(platform) {
+  modalMode = 'add'; modalTranchId = null;
+  document.getElementById('modal-title').textContent = 'Add tranche';
+  document.getElementById('m-name').value   = '';
+  document.getElementById('m-phase').value  = 'Discovery';
+  document.getElementById('m-csm').value    = '';
+  document.getElementById('m-golive').value = '';
+  document.getElementById('m-notes').value  = '';
+  document.getElementById('modal-delete-btn').style.display = 'none';
+  document.getElementById('modal-delete-btn').dataset.platform = platform;
+  document.getElementById('tranche-modal').dataset.platform = platform;
+  document.getElementById('tranche-modal').classList.add('open');
+}
+
+function openEditTranche(tid, e) {
+  e.stopPropagation();
+  var tr = S.tranches.find(function(t){ return t._id === tid; });
+  if (!tr) return;
+  modalMode = 'edit'; modalTranchId = tid;
+  document.getElementById('modal-title').textContent = 'Edit tranche';
+  document.getElementById('m-name').value   = tr.Title||'';
+  document.getElementById('m-phase').value  = tr.Phase||'Discovery';
+  document.getElementById('m-csm').value    = tr.CSM||'';
+  document.getElementById('m-golive').value = tr.GoLive||'';
+  document.getElementById('m-notes').value  = tr.Notes||'';
+  // Show delete only if tranche is empty
+  var hasActive = S.customers.some(function(c){ return c.TrancheId===tid && !c.Churned; });
+  var delBtn = document.getElementById('modal-delete-btn');
+  delBtn.style.display = hasActive ? 'none' : 'inline-block';
+  delBtn.dataset.tid = tid;
+  document.getElementById('tranche-modal').classList.add('open');
+}
+
+function saveModal() {
+  var name   = document.getElementById('m-name').value.trim();
+  var phase  = document.getElementById('m-phase').value;
+  var csm    = document.getElementById('m-csm').value.trim();
+  var golive = document.getElementById('m-golive').value;
+  var notes  = document.getElementById('m-notes').value.trim();
+  if (!name) return;
+
+  if (modalMode === 'add') {
+    var platform = document.getElementById('tranche-modal').dataset.platform;
+    var newId = platform + '-t-' + Date.now();
+    var tr = { _id:newId, Title:name, Platform:platform, Phase:phase,
+               CSM:csm, GoLive:golive||null, Notes:notes||null, Customers:0, spId:null };
+    S.tranches.push(tr);
+    if (SP_READY) {
+      spCreate(SP_TRANCH, { Title:name, LocalId:newId, Platform:platform, Phase:phase, CSM:csm, GoLive:golive||null, Notes:notes||null }, 'SP.Data.MigrationTranchesListItem')
+        .then(function(item){ tr.spId = item.Id; spTranchIds[newId] = item.Id; });
+    }
+  } else if (modalMode === 'edit' && modalTranchId) {
+    var tr2 = S.tranches.find(function(t){ return t._id === modalTranchId; });
+    if (!tr2) return;
+    tr2.Title = name; tr2.Phase = phase; tr2.CSM = csm;
+    tr2.GoLive = golive||null; tr2.Notes = notes||null;
+    if (SP_READY && spTranchIds[modalTranchId]) {
+      spUpdate(SP_TRANCH, spTranchIds[modalTranchId],
+        { Title:name, Phase:phase, CSM:csm, GoLive:golive||null, Notes:notes||null },
+        'SP.Data.MigrationTranchesListItem');
+    }
+  }
+  closeModal();
   renderAll();
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+function deleteTranche() {
+  var tid = document.getElementById('modal-delete-btn').dataset.tid;
+  closeModal();
+  var tr = S.tranches.find(function(t){ return t._id === tid; });
+  if (!tr) return;
+  showConfirm('Delete "' + tr.Title + '"? This cannot be undone.', function() {
+    S.tranches = S.tranches.filter(function(t){ return t._id !== tid; });
+    if (SP_READY && spTranchIds[tid]) {
+      spDelete(SP_TRANCH, spTranchIds[tid]);
+    }
+    renderAll();
+  });
+}
+
+function closeModal() {
+  document.getElementById('tranche-modal').classList.remove('open');
+  modalMode = null; modalTranchId = null;
+}
+
+function showConfirm(msg, cb) {
+  confirmCb = cb;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function confirmDelete() { closeConfirm(); if (confirmCb) confirmCb(); }
+function closeConfirm()  { document.getElementById('confirm-modal').classList.remove('open'); confirmCb = null; }
+
+// ── Move customer to tranche ─────────────────────────────────────────────────
+function moveCustomer(cid, newTrId, e) {
+  e.stopPropagation();
+  if (!newTrId || newTrId === '__current') return;
+  var c = S.customers.find(function(x){ return x._id === cid; });
+  if (!c) return;
+  var oldTrId = c.TrancheId;
+  c.TrancheId = newTrId;
+  // Update all this customer's tasks
+  S.tasks.filter(function(t){ return t.CustomerId === cid; }).forEach(function(tk) {
+    tk.TrancheId = newTrId;
+    if (SP_READY) saveTask(tk, { TrancheId: newTrId });
+  });
+  reTr(oldTrId);
+  reTr(newTrId);
+  renderStats();
+}
+
+// ── Churn / unchurn ──────────────────────────────────────────────────────────
+function toggleChurn(cid, e) {
+  e.stopPropagation();
+  var c = S.customers.find(function(x){ return x._id === cid; });
+  if (!c) return;
+  c.Churned = !c.Churned;
+  // Persist via any task row for this customer
+  var tk = S.tasks.find(function(t){ return t.CustomerId === cid; });
+  if (tk && SP_READY) saveTask(tk, { Churned: c.Churned });
+  reTr(c.TrancheId);
+  renderStats();
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 var T0 = new Date('2026-04-02');
-function fmt(d) { if (!d) return null; return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
-function dc(d)  { if (!d) return ''; var diff=(new Date(d)-T0)/864e5; return diff<0?'overdue':diff<14?'soon':''; }
+function fmt(d) { if (!d) return null; return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
+function dc(d)  { if (!d) return ''; var diff=(new Date(d+'T00:00:00')-T0)/864e5; return diff<0?'overdue':diff<14?'soon':''; }
 function pbc(p) { return p===100?'#3B6D11':p>0?'#185FA5':'#B4B2A9'; }
-function pbar(p,w) { return '<div class="pbar-wrap"><div class="pbar" style="width:'+(w||50)+'px"><div class="pbar-fill" style="width:'+p+'%;background:'+pbc(p)+'"></div></div><span style="font-size:10px;color:var(--text2);min-width:26px">'+p+'%</span></div>'; }
-function pill(s) { var m={Complete:'p-done','In progress':'p-prog','Not started':'p-wait',Disabled:'p-dis',Churned:'p-dis'}; return '<span class="pill '+(m[s]||'p-wait')+'">'+s+'</span>'; }
-function csmIn(n) { return (n||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2); }
-function csmChip(n) { return '<div class="csm-chip"><div class="csm-av">'+csmIn(n)+'</div>'+n+'</div>'; }
-function getTasks(cid) { return S.tasks.filter(function(t){return t.CustomerId===cid;}).sort(function(a,b){return a.TaskIndex-b.TaskIndex;}); }
-function getCusts(tid) { return S.customers.filter(function(c){return c.TrancheId===tid;}); }
-function custPct(cid)  { var t=getTasks(cid); return t.length?Math.round(t.reduce(function(a,x){return a+x.Pct;},0)/t.length):0; }
-function tranchePct(tid) { var c=getCusts(tid); return c.length?Math.round(c.reduce(function(a,x){return a+custPct(x._id);},0)/c.length):0; }
+function pbar(p,w){ return '<div class="pbar-wrap"><div class="pbar" style="width:'+(w||44)+'px"><div class="pbar-fill" style="width:'+p+'%;background:'+pbc(p)+'"></div></div><span style="font-size:10px;color:var(--text2);margin-left:3px">'+p+'%</span></div>'; }
+function pill(s){ var m={Complete:'p-done','In progress':'p-prog','Not started':'p-wait',Churned:'p-churn'}; return '<span class="pill '+(m[s]||'p-wait')+'">'+s+'</span>'; }
+function csmDisp(val,id,saveKey,extra){
+  return '<div class="csm-wrap" onclick="event.stopPropagation()"><input class="csm-native" value="'+escH(val||'')+'" placeholder="CSM…" onblur="saveField(this,\''+id+'\',\'csm\',\''+saveKey+'\',\''+extra+'\')" onkeydown="if(event.key===\'Enter\')this.blur()"><span class="csm-display" id="'+id+'">'+escH(val||'—')+'</span></div>';
+}
+function dateDisp(val,id,saveKey,extra){
+  var disp = val ? fmt(val) : '—';
+  var cls  = val ? 'date-display '+dc(val) : 'date-display';
+  return '<div class="date-wrap" onclick="event.stopPropagation()"><span class="'+cls+'" id="'+id+'">'+disp+'</span><input type="date" class="date-native" value="'+(val||'')+'" onchange="saveField(this,\''+id+'\',\'date\',\''+saveKey+'\',\''+extra+'\')"></div>';
+}
+function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getTasks(cid){ return S.tasks.filter(function(t){return t.CustomerId===cid;}).sort(function(a,b){return a.TaskIndex-b.TaskIndex;}); }
+function getCusts(tid){ return S.customers.filter(function(c){return c.TrancheId===tid;}); }
+function getActiveCusts(tid){ return getCusts(tid).filter(function(c){return !c.Churned;}); }
+function getChurnedCusts(tid){ return getCusts(tid).filter(function(c){return c.Churned;}); }
+function custPct(cid){ var t=getTasks(cid); return t.length?Math.round(t.reduce(function(a,x){return a+x.Pct;},0)/t.length):0; }
+function phase1Pct(cid){
+  var tasks = getTasks(cid).filter(function(t){ return PHASE1_TASKS.indexOf(t.TaskName)>=0; });
+  return tasks.length?Math.round(tasks.reduce(function(a,t){return a+t.Pct;},0)/tasks.length):0;
+}
+function phase2Pct(cid){
+  var tasks = getTasks(cid).filter(function(t){ return PHASE2_TASKS.indexOf(t.TaskName)>=0; });
+  return tasks.length?Math.round(tasks.reduce(function(a,t){return a+t.Pct;},0)/tasks.length):0;
+}
+function tranchePct(tid){
+  var c=getActiveCusts(tid);
+  return c.length?Math.round(c.reduce(function(a,x){return a+custPct(x._id);},0)/c.length):0;
+}
 
-// ── UI state ──────────────────────────────────────────────────────────────────
-var openT=new Set(), openC=new Set(), openTk=new Set();
-var activeTab='ngpi';
-var tabFilter={ngpi:null,bpa:null,wmap:null,numap:null};
-var tabSearch={ngpi:'',bpa:'',wmap:'',numap:''};
+// ── Field save callback ──────────────────────────────────────────────────────
+function saveField(el, displayId, type, saveKey, extra) {
+  var val = el.value;
+  var disp = document.getElementById(displayId);
+  if (disp) disp.textContent = type==='date' ? (val?fmt(val):'—') : (val||'—');
+  setInd('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() {
+    // saveKey: 'task:_id' or 'tranche:_id' or 'customer:_id'
+    var parts = saveKey.split(':');
+    var kind = parts[0], id = parts[1];
+    if (kind === 'task') {
+      var tk = S.tasks.find(function(t){ return t._id===id; });
+      if (!tk) return;
+      if (extra==='date') tk.TargetDate = val;
+      if (extra==='csm') { var c=S.customers.find(function(x){return x._id===tk.CustomerId;}); if(c) c.CSM=val; }
+      saveTask(tk, extra==='date'?{TargetDate:val}:{CSM:val});
+    } else if (kind === 'tranche') {
+      var tr = S.tranches.find(function(t){ return t._id===id; });
+      if (!tr) return;
+      if (extra==='date') tr.GoLive = val;
+      if (extra==='csm')  tr.CSM   = val;
+      if (SP_READY && spTranchIds[id]) {
+        spUpdate(SP_TRANCH, spTranchIds[id],
+          extra==='date'?{GoLive:val}:{CSM:val},
+          'SP.Data.MigrationTranchesListItem').then(function(){setInd('saved');});
+      } else setInd('saved');
+    }
+  }, 600);
+}
 
-// ── Render ────────────────────────────────────────────────────────────────────
+
+// ── Render all ───────────────────────────────────────────────────────────────
+var TABS = [
+  {key:'summary', label:'Summary'},
+  {key:'ngpi',  label:'NGPI'},
+  {key:'bpa',   label:'BPA'},
+  {key:'wmap',  label:'Wiser MAP'},
+  {key:'numap', label:'NuMap'}
+];
+
 function renderAll() { renderStats(); renderTabs(); }
 
+function renderStats() {
+  var active = S.customers.filter(function(c){return !c.Churned;});
+  var counts = { notStarted:0, phase1:0, phase2:0, signoff:0, done:0 };
+  active.forEach(function(c) {
+    var p1 = phase1Pct(c._id), p2 = phase2Pct(c._id);
+    var so = S.tasks.find(function(t){return t.CustomerId===c._id && t.TaskName===SIGNOFF_TASK;});
+    if (so && so.Status === 'Complete') counts.done++;
+    else if (so && so.Pct > 0) counts.signoff++;
+    else if (p2 > 0) counts.phase2++;
+    else if (p1 > 0) counts.phase1++;
+    else counts.notStarted++;
+  });
+  document.getElementById('stats-bar').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Not started</div><div class="stat-val" style="color:var(--text2)">'+counts.notStarted+'</div><div class="stat-sub">of '+active.length+' customers</div></div>'+
+    '<div class="stat-card" style="border-top:2px solid #185FA5"><div class="stat-label">Phase 1</div><div class="stat-val" style="color:var(--blue-text)">'+counts.phase1+'</div><div class="stat-sub">in progress</div></div>'+
+    '<div class="stat-card" style="border-top:2px solid #3B6D11"><div class="stat-label">Phase 2</div><div class="stat-val" style="color:var(--green-text)">'+counts.phase2+'</div><div class="stat-sub">matching &amp; DQ</div></div>'+
+    '<div class="stat-card" style="border-top:2px solid #7F77DD"><div class="stat-label">Sign-off</div><div class="stat-val" style="color:var(--purple-text)">'+counts.signoff+'</div><div class="stat-sub">awaiting sign-off</div></div>'+
+    '<div class="stat-card" style="border-top:2px solid #3B6D11"><div class="stat-label">Done</div><div class="stat-val" style="color:#3B6D11">'+counts.done+'</div><div class="stat-sub">fully migrated</div></div>';
+}
+
 function renderTabs() {
+  var counts = {ngpi:0,bpa:0,wmap:0,numap:0};
+  S.customers.filter(function(c){return !c.Churned;}).forEach(function(c){ if(counts[c.Platform]!==undefined) counts[c.Platform]++; });
   document.getElementById('main-tabs').innerHTML = TABS.map(function(t) {
-    return '<div class="tab '+(t.key===activeTab?'active':'')+'" onclick="switchTab(\''+t.key+'\')">'+t.label+'<span class="tab-badge">'+t.count+'</span></div>';
+    var badge = t.key!=='summary' ? ' <span class="tab-badge">'+counts[t.key]+'</span>' : '';
+    return '<div class="tab '+(t.key===activeTab?'active':'')+'" onclick="switchTab(\''+t.key+'\')">'+t.label+badge+'</div>';
   }).join('');
   document.getElementById('tab-contents').innerHTML = TABS.map(function(t) {
-    return '<div id="tab-'+t.key+'" class="tab-content '+(t.key===activeTab?'active':'')+'">'+renderPlatform(t.key)+'</div>';
+    return '<div id="tab-'+t.key+'" class="tab-content '+(t.key===activeTab?'active':'')+'">'+
+      (t.key==='summary' ? renderSummary() : renderPlatform(t.key)) + '</div>';
   }).join('');
 }
 
+function switchTab(key) { activeTab=key; renderTabs(); }
+
+// ── Summary tab ──────────────────────────────────────────────────────────────
+function renderSummary() {
+  var plats = [{key:'ngpi',label:'NGPI',color:'#185FA5'},{key:'bpa',label:'BPA',color:'#854F0B'},{key:'wmap',label:'Wiser MAP',color:'#0F6E56'},{key:'numap',label:'NuMap',color:'#534AB7'}];
+  return '<div class="sum-grid">'+plats.map(function(p) {
+    var custs = S.customers.filter(function(c){return c.Platform===p.key && !c.Churned;});
+    var ns=0,p1=0,p2=0,so=0,done=0;
+    custs.forEach(function(c) {
+      var ph1=phase1Pct(c._id),ph2=phase2Pct(c._id);
+      var soTask=S.tasks.find(function(t){return t.CustomerId===c._id&&t.TaskName===SIGNOFF_TASK;});
+      if(soTask&&soTask.Status==='Complete') done++;
+      else if(soTask&&soTask.Pct>0) so++;
+      else if(ph2>0) p2++;
+      else if(ph1>0) p1++;
+      else ns++;
+    });
+    var total=custs.length, advPct=total?Math.round((p2+so+done)/total*100):0;
+    return '<div class="sum-card">'+
+      '<div class="sum-card-title"><div style="width:8px;height:8px;border-radius:50%;background:'+p.color+';flex-shrink:0"></div>'+p.label+
+      ' <span style="font-size:10px;font-weight:400;color:var(--text2)">'+total+' customers</span></div>'+
+      '<div class="sum-row"><span style="color:var(--text2)">Not started</span><span style="font-weight:500;color:var(--text2)">'+ns+'</span></div>'+
+      '<div class="sum-row"><span style="color:var(--text2)">Phase 1</span><span style="font-weight:500;color:var(--blue-text)">'+p1+'</span></div>'+
+      '<div class="sum-row"><span style="color:var(--text2)">Phase 2</span><span style="font-weight:500;color:var(--green-text)">'+p2+'</span></div>'+
+      '<div class="sum-row"><span style="color:var(--text2)">Migration sign-off</span><span style="font-weight:500;color:var(--purple-text)">'+so+'</span></div>'+
+      '<div class="sum-row"><span style="color:var(--text2)">Done</span><span style="font-weight:500;color:#3B6D11">'+done+'</span></div>'+
+      '<div style="height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;margin-top:10px">'+
+        '<div style="height:100%;border-radius:2px;background:'+p.color+';width:'+advPct+'%"></div></div>'+
+      '<div style="font-size:10px;color:var(--text2);margin-top:4px">'+advPct+'% in Phase 2 or beyond</div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+// ── Platform tab ─────────────────────────────────────────────────────────────
 function renderPlatform(plat) {
   var tranches = S.tranches.filter(function(t){return t.Platform===plat;});
-  var q = (tabSearch[plat]||'').toLowerCase();
-  var f = tabFilter[plat];
-  var filtered = tranches.filter(function(t) {
-    if (f==='Discovery' && t.Phase!=='Discovery') return false;
-    if (f==='Matching'  && t.Phase.toLowerCase().indexOf('match')<0) return false;
-    if (f==='At risk'   && !getCusts(t._id).some(function(c){return (c.Notes||'').toLowerCase().indexOf('risk')>=0;})) return false;
-    if (q) return t.Title.toLowerCase().indexOf(q)>=0 || getCusts(t._id).some(function(c){return c.Title.toLowerCase().indexOf(q)>=0||(c.CustomerId||'').indexOf(q)>=0;});
-    return true;
-  });
-  var rows = filtered.map(function(t){return renderTranche(t);}).join('');
-  return '<div class="toolbar">'
-    + '<input type="text" placeholder="Search tranches or customers\u2026" value="'+(tabSearch[plat]||'')+'" oninput="doSearch(this,\''+plat+'\')">'
-    + '<button class="fbtn '+(f==='Discovery'?'on':'')+'" onclick="doFilter(this,\''+plat+'\',\'Discovery\')">Discovery</button>'
-    + '<button class="fbtn '+(f==='Matching'?'on':'')+'" onclick="doFilter(this,\''+plat+'\',\'Matching\')">Matching</button>'
-    + '<button class="fbtn '+(f==='At risk'?'on':'')+'" onclick="doFilter(this,\''+plat+'\',\'At risk\')">At risk</button>'
-    + '<span class="save-ind"></span></div>'
-    + '<div class="tbl">'
-    + '<div class="col-hdr"><div class="hc"></div><div class="hc">Tranche / customer</div><div class="hc ctr">% complete</div>'
-    + '<div class="hc ctr">Discovery</div><div class="hc ctr">Crawl append</div><div class="hc ctr">Matching</div>'
-    + '<div class="hc ctr">Data quality</div><div class="hc ctr">Monitoring</div><div class="hc">Handoff / CSM</div></div>'
-    + rows + '</div>';
+  var html = '';
+  tranches.forEach(function(tr){ html += renderTranche(tr); });
+  html += '<button class="add-tranche-btn" onclick="openAddTranche(\''+plat+'\')">+ Add tranche</button>';
+  return html;
 }
 
+// ── Tranche ──────────────────────────────────────────────────────────────────
 function renderTranche(tr) {
   var open = openT.has(tr._id);
-  var pct  = tranchePct(tr._id);
-  var custs = getCusts(tr._id);
-  var summary = TASKS.map(function(_,ti) {
-    var ps  = custs.map(function(c){var tk=getTasks(c._id)[ti];return tk?tk.Pct:0;});
-    var avg = ps.length?Math.round(ps.reduce(function(a,b){return a+b;},0)/ps.length):0;
-    var d   = custs.length?(getTasks(custs[0]._id)[ti]&&getTasks(custs[0]._id)[ti].TargetDate||null):null;
-    return {avg:avg, d:d};
-  });
-  var summaryHtml = summary.map(function(s) {
-    return '<div class="tc" style="text-align:center">'
-      + pill(s.avg===100?'Complete':s.avg>0?'In progress':'Not started')
-      + (s.avg>0&&s.avg<100?'<div style="margin-top:2px;display:flex;justify-content:center">'+pbar(s.avg,36)+'</div>':'')
-      + (s.d?'<div class="date-cell '+dc(s.d)+'" style="margin-top:2px;text-align:center">'+fmt(s.d)+'</div>':'')
-      + '</div>';
-  }).join('');
-  var custsHtml = open ? '<div class="cust-rows" id="custs-'+tr._id+'">'+custs.map(function(c){return renderCust(c);}).join('')+'</div>' : '';
-  return '<div class="row-wrap" id="tr-'+tr._id+'">'
-    + '<div class="tr-row" onclick="toggleT(\''+tr._id+'\')">'
-    +   '<div class="tc"><span class="chev '+(open?'open':'')+'" id="cht-'+tr._id+'">&#9658;</span></div>'
-    +   '<div class="tc"><div style="font-weight:500;font-size:12px;display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
-    +     tr.Title+'<span class="badge-cnt">'+tr.Customers+' customers</span>'+(tr.Notes?'<span class="note-chip">'+tr.Notes+'</span>':'')
-    +   '</div><div style="font-size:10px;color:var(--text2);margin-top:2px">Phase: '+tr.Phase+' &middot; CSM: '+tr.CSM+'</div></div>'
-    +   '<div class="tc">'+pbar(pct,55)+'</div>'
-    +   summaryHtml
-    +   '<div class="tc"><div class="csm-wrap"><div class="date-cell '+dc(tr.GoLive)+'">Go-live: '+(fmt(tr.GoLive)||'TBD')+'</div>'+csmChip(tr.CSM)+'</div></div>'
-    + '</div>'
-    + custsHtml
-    + '</div>';
+  var active = getActiveCusts(tr._id);
+  var churned = getChurnedCusts(tr._id);
+  var pct = tranchePct(tr._id);
+  var ph1avg = active.length ? Math.round(active.reduce(function(a,c){return a+phase1Pct(c._id);},0)/active.length) : 0;
+  var ph2avg = active.length ? Math.round(active.reduce(function(a,c){return a+phase2Pct(c._id);},0)/active.length) : 0;
+  var latestDate = active.reduce(function(mx,c){
+    var tasks=getTasks(c._id);
+    tasks.forEach(function(t){if(t.TargetDate&&(!mx||t.TargetDate>mx))mx=t.TargetDate;});
+    return mx;
+  }, null);
+
+  var tbl = '<div class="tbl" id="tbl-'+tr._id+'">'+
+    '<div class="col-hdr"><div></div><div class="ch" style="text-align:left">Tranche / customer</div>'+
+    '<div class="ch">Ph 1</div><div class="ch">Ph 2</div><div class="ch">Overall</div>'+
+    '<div class="ch">Date</div><div class="ch">CSM</div></div>'+
+    '<div class="tr-row" id="tr-'+tr._id+'" onclick="toggleT(\''+tr._id+'\')">'+
+      '<div><span class="chev '+(open?'open':'')+'" id="cht-'+tr._id+'">&#9658;</span></div>'+
+      '<div style="font-size:12px;min-width:0">'+
+        '<div style="font-weight:500;display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
+          escH(tr.Title)+
+          '<span style="font-size:10px;background:var(--bg2);color:var(--text2);padding:1px 5px;border-radius:5px;border:.5px solid var(--border)">'+active.length+' active</span>'+
+          (churned.length?'<span style="font-size:10px;color:var(--red-text)">'+churned.length+' churned</span>':'')+
+          (tr.Notes?'<span class="note-chip">'+escH(tr.Notes)+'</span>':'')+
+        '</div>'+
+        '<div style="font-size:10px;color:var(--text2);margin-top:1px">Phase: '+escH(tr.Phase||'—')+'</div>'+
+        '<div class="tr-actions">'+
+          '<button class="icon-btn" onclick="openEditTranche(\''+tr._id+'\',event)">Edit</button>'+
+        '</div>'+
+      '</div>'+
+      '<div style="text-align:center"><span style="font-size:11px;font-weight:500;color:var(--blue-text)">'+ph1avg+'%</span></div>'+
+      '<div style="text-align:center"><span style="font-size:11px;font-weight:500;color:var(--green-text)">'+(ph2avg?ph2avg+'%':'—')+'</span></div>'+
+      '<div style="text-align:center"><span style="font-size:11px;font-weight:500">'+pct+'%</span></div>'+
+      '<div>'+dateDisp(tr.GoLive,'td-gl-'+tr._id,'tranche:'+tr._id,'date')+'</div>'+
+      '<div>'+csmDisp(tr.CSM,'td-csm-'+tr._id,'tranche:'+tr._id,'csm')+'</div>'+
+    '</div>';
+
+  if (open) {
+    tbl += '<div id="custs-'+tr._id+'">';
+    active.forEach(function(c){ tbl += renderCustomer(c, tr); });
+    // Churned section
+    if (churned.length) {
+      var chOpen = openT.has('churn-'+tr._id);
+      tbl += '<div class="churned-hdr" onclick="toggleT(\'churn-'+tr._id+'\')">'+
+        '<span class="chev '+(chOpen?'open':'')+'" id="cht-churn-'+tr._id+'">&#9658;</span>'+
+        '<span style="font-size:10px;font-weight:500;color:var(--red-text)">Churned</span>'+
+        '<span style="font-size:10px;background:var(--red-bg);color:var(--red-text);padding:1px 6px;border-radius:8px">'+churned.length+'</span>'+
+        '<span style="font-size:10px;color:var(--text3)">excluded from all calculations</span>'+
+      '</div>';
+      if (chOpen) {
+        tbl += '<div id="custs-churn-'+tr._id+'">';
+        churned.forEach(function(c){ tbl += renderCustomer(c, tr); });
+        tbl += '</div>';
+      }
+    }
+    tbl += '</div>';
+  }
+  tbl += '</div>';
+  return tbl;
 }
 
-function renderCust(c) {
-  var open  = openC.has(c._id);
-  var pct   = custPct(c._id);
-  var tasks = getTasks(c._id);
-  var dis   = c.Status==='churned'||c.Status==='disabled';
-  var taskCells = tasks.map(function(tk) {
-    return '<div class="cc" style="text-align:center">'
-      + pill(dis?'Disabled':tk.Status)
-      + (tk.Pct>0&&tk.Pct<100?'<div style="margin-top:2px;display:flex;justify-content:center">'+pbar(tk.Pct,34)+'</div>':'')
-      + '</div>';
-  }).join('');
-  var detailHtml = open ? '<div class="task-detail-rows" id="tdr-'+c._id+'">'+tasks.map(function(tk){return renderTaskRow(c,tk);}).join('')+'</div>' : '';
-  return '<div class="row-wrap" id="cu-'+c._id+'">'
-    + '<div class="c-row" onclick="toggleC(\''+c._id+'\')">'
-    +   '<div class="cc"></div>'
-    +   '<div class="cc"><span class="chev '+(open?'open':'')+'" id="chc-'+c._id+'">&#9658;</span></div>'
-    +   '<div class="cc"><div style="font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px">'+c.Title+(dis?'<span class="pill p-dis" style="font-size:9px">disabled</span>':'')+'</div>'
-    +     '<div style="display:flex;gap:5px;align-items:center;margin-top:2px;flex-wrap:wrap">'
-    +       (c.CustomerId?'<span style="font-size:10px;color:var(--text2)">ID: '+c.CustomerId+'</span>':'')
-    +       (c.Frequency?'<span style="font-size:10px;color:var(--text2)">'+c.Frequency+'</span>':'')
-    +       (c.Notes?'<span class="cat-chip">'+c.Notes+'</span>':'')
-    +     '</div></div>'
-    +   '<div class="cc">'+pbar(pct,50)+'</div>'
-    +   taskCells
-    +   '<div class="cc"><div class="csm-wrap">'
-    +     (c.HandoffDate?'<div class="date-cell '+dc(c.HandoffDate)+'">Handoff: '+fmt(c.HandoffDate)+'</div>':'')
-    +     (c.CSM?csmChip(c.CSM):'')
-    +     '<input class="inline-edit" value="'+(c.CSM||'')+'" placeholder="Assign CSM\u2026" style="font-size:10px;width:100%;margin-top:'+(c.CSM?'4':'0')+'px" onclick="event.stopPropagation()" onblur="updateCSM(\''+c._id+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">'
-    +   '</div></div>'
-    + '</div>'
-    + detailHtml
-    + '</div>';
+// ── Customer row ─────────────────────────────────────────────────────────────
+function renderCustomer(c, tr) {
+  var open   = openC.has(c._id);
+  var p1     = phase1Pct(c._id);
+  var p2     = phase2Pct(c._id);
+  var overall= custPct(c._id);
+  var tasks  = getTasks(c._id);
+  var latestTkDate = tasks.reduce(function(mx,t){return t.TargetDate&&(!mx||t.TargetDate>mx)?t.TargetDate:mx;},null);
+  // Build tranche dropdown options
+  var platTranches = S.tranches.filter(function(t){return t.Platform===c.Platform && t._id!==c.TrancheId;});
+  var moveOpts = '<option value="__current">Move to tranche…</option>'+
+    platTranches.map(function(t){return '<option value="'+t._id+'">'+escH(t.Title)+'</option>';}).join('');
+
+  var rowClass = 'c-row' + (c.Churned?' churned-row':'');
+  var html = '<div class="'+rowClass+'" id="cu-'+c._id+'" onclick="toggleC(\''+c._id+'\')">';
+  html += '<div></div>';
+  html += '<div><span class="chev '+(open?'open':'')+'" id="chc-'+c._id+'">&#9658;</span></div>';
+  html += '<div class="cc" style="text-align:left;min-width:0">'+
+    '<div style="font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;flex-wrap:wrap">'+
+      escH(c.Title)+
+      (c.Churned?'<span class="pill p-churn" style="font-size:9px">Churned</span>':'')+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--text2);margin-top:1px">'+
+      (c.CustomerId?'ID: '+c.CustomerId+' · ':'')+
+      (c.Frequency||'')+
+    '</div>'+
+    (c.Notes?'<div style="font-size:10px;color:var(--amber-text);margin-top:1px">'+escH(c.Notes)+'</div>':'')+
+  '</div>';
+  html += '<div class="cc"><span style="font-size:11px;font-weight:500;color:var(--blue-text)">'+p1+'%</span></div>';
+  html += '<div class="cc"><span style="font-size:11px;font-weight:500;color:var(--green-text)">'+(p2?p2+'%':'—')+'</span></div>';
+  html += '<div class="cc"><span style="font-size:11px;font-weight:500">'+overall+'%</span></div>';
+  html += '<div class="cc">'+dateDisp(latestTkDate,'c-date-'+c._id,'task:'+(tasks[0]?tasks[0]._id:'x'),'date')+'</div>';
+  html += '<div class="cc">'+csmDisp(c.CSM,'c-csm-'+c._id,'task:'+(tasks[0]?tasks[0]._id:'x'),'csm')+'</div>';
+  // Churn hover control
+  html += '<div class="churn-hover" onclick="toggleChurn(\''+c._id+'\',event)">'+
+    '<div class="churn-cbx '+(c.Churned?'on':'')+'">'+(c.Churned?'&#10003;':'')+'</div>'+
+    '<span>'+(c.Churned?'Unchurn':'Mark churned')+'</span>'+
+  '</div>';
+  html += '</div>';
+
+  // Expanded detail
+  if (open && !c.Churned) {
+    html += '<div id="cud-'+c._id+'">';
+    // Move to tranche + phase sections
+    html += '<div style="padding:4px 10px 4px 28px;background:var(--bg2);border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:8px">'+
+      '<select class="move-select" onclick="event.stopPropagation()" onchange="moveCustomer(\''+c._id+'\',this.value,event)">'+moveOpts+'</select>'+
+    '</div>';
+    html += renderPhase1(c, tasks);
+    html += renderPhase2(c, tasks);
+    html += renderSignOff(c, tasks);
+    html += '</div>';
+  }
+  return html;
 }
 
-function renderTaskRow(c, tk) {
+
+// ── Phase 1 ──────────────────────────────────────────────────────────────────
+function renderPhase1(c, tasks) {
+  var p1open = openT.has('p1-'+c._id);
+  var p1pct  = phase1Pct(c._id);
+  var status = p1pct===100?'Complete':p1pct>0?'In progress':'Not started';
+  var html = '<div class="phase-band"><div class="phase-row ph1-row" onclick="toggleT(\'p1-'+c._id+'\')">'+
+    '<span class="chev '+(p1open?'open':'')+'" id="cht-p1-'+c._id+'">&#9658;</span>'+
+    '<div class="phase-title">Phase 1</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+pill(status)+
+    '<div class="pbar-wrap"><div class="pbar" style="width:42px"><div class="pbar-fill" style="width:'+p1pct+'%;background:#185FA5"></div></div>'+
+    '<span style="font-size:10px;color:var(--blue-text);font-weight:500;margin-left:2px">'+p1pct+'%</span></div></div>'+
+  '</div>';
+  if (p1open) {
+    html += '<div>';
+    PHASE1_TASKS.forEach(function(tname, i) {
+      var tk = tasks.find(function(t){return t.TaskName===tname;});
+      if (!tk) return;
+      html += renderTaskRow(c, tk, i===PHASE1_TASKS.length-1);
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Phase 2 ──────────────────────────────────────────────────────────────────
+function renderPhase2(c, tasks) {
+  var p2open = openT.has('p2-'+c._id);
+  var p2pct  = phase2Pct(c._id);
+  var status = p2pct===100?'Complete':p2pct>0?'In progress':'Not started';
+  var html = '<div class="phase-band"><div class="phase-row ph2-row" onclick="toggleT(\'p2-'+c._id+'\')">'+
+    '<span class="chev '+(p2open?'open':'')+'" id="cht-p2-'+c._id+'">&#9658;</span>'+
+    '<div class="phase-title">Phase 2</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+pill(status)+
+    '<div class="pbar-wrap"><div class="pbar" style="width:42px"><div class="pbar-fill" style="width:'+p2pct+'%;background:#3B6D11"></div></div>'+
+    '<span style="font-size:10px;color:var(--green-text);font-weight:500;margin-left:2px">'+p2pct+'%</span></div></div>'+
+  '</div>';
+  if (p2open) {
+    html += '<div>';
+    // Matching/DQ iterative block
+    var matchTk = tasks.find(function(t){return t.TaskName==='Matching';});
+    var dqTk    = tasks.find(function(t){return t.TaskName==='Data quality';});
+    if (matchTk) html += renderIterative(c, matchTk, dqTk);
+    // Monitoring P2
+    var mon2 = tasks.find(function(t){return t.TaskName==='Monitoring P2';});
+    if (mon2) html += renderTaskRow(c, mon2, true);
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Migration sign-off ───────────────────────────────────────────────────────
+function renderSignOff(c, tasks) {
+  var soopen = openT.has('so-'+c._id);
+  var soTk   = tasks.find(function(t){return t.TaskName===SIGNOFF_TASK;});
+  if (!soTk) return '';
+  var steps  = JSON.parse(soTk.StepsJson||'[]');
+  var done   = steps.filter(function(s){return s.done;}).length;
+  var status = soTk.Status;
+  var html = '<div class="phase-band"><div class="phase-row so-row" onclick="toggleT(\'so-'+c._id+'\')">'+
+    '<span class="chev '+(soopen?'open':'')+'" id="cht-so-'+c._id+'">&#9658;</span>'+
+    '<div class="phase-title">Migration sign-off</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+pill(status)+
+    dateDisp(soTk.TargetDate,'so-date-'+soTk._id,'task:'+soTk._id,'date')+'</div>'+
+  '</div>';
+  if (soopen) {
+    html += '<div class="so-info-row">'+
+      '<div class="ti"><b>Go-live:</b> '+dateDisp(soTk.TargetDate,'so-date2-'+soTk._id,'task:'+soTk._id,'date')+'</div>'+
+    '</div>';
+    html += '<div class="so-checklist">'+steps.map(function(s,si){
+      var isGtm = GTM_STEPS.indexOf(s.label)>=0;
+      return '<div class="cl-row">'+
+        '<div class="cbx '+(s.done?'done':'')+'" onclick="toggleStep(\''+soTk._id+'\','+si+',event)">'+(s.done?'&#10003;':'')+'</div>'+
+        '<div><span class="cl-label'+(s.done?' done':'')+'">'+escH(s.label)+
+          (isGtm?'<span class="cl-tag tag-gtm">GTM</span>':'')+
+        '</span>'+
+        (isGtm?'<div class="cl-sub">CSM: '+csmDisp(c.CSM,'so-csm-'+si+'-'+soTk._id,'task:'+soTk._id,'csm')+'</div>':'')+
+        '</div></div>';
+    }).join('')+'</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// ── Task row ──────────────────────────────────────────────────────────────────
+function renderTaskRow(c, tk, isLast) {
   var open  = openTk.has(tk._id);
-  var steps = JSON.parse(tk.StepsJson || '[]');
-  var statusClass = tk.Status==='Complete'?'p-done':tk.Status==='In progress'?'p-prog':'p-wait';
-  return '<div class="row-wrap" id="tkr-'+tk._id+'">'
-    + '<div class="td-row" onclick="toggleTk(\''+tk._id+'\')">'
-    +   '<div style="padding:6px 4px"></div>'
-    +   '<div style="padding:6px 4px"><span class="chev '+(open?'open':'')+'" id="chtk-'+tk._id+'">&#9658;</span></div>'
-    +   '<div style="padding:6px 8px"><div style="font-size:11px;font-weight:500">'+tk.TaskName+'</div><div style="margin-top:3px">'+pbar(tk.Pct,60)+'</div></div>'
-    +   '<div style="padding:6px 8px" onclick="event.stopPropagation()">'
-    +     '<select class="pill '+statusClass+' pill-sel" onchange="updateStatus(\''+tk._id+'\',this.value)">'
-    +       '<option'+(tk.Status==='Not started'?' selected':'')+'>Not started</option>'
-    +       '<option'+(tk.Status==='In progress'?' selected':'')+'>In progress</option>'
-    +       '<option'+(tk.Status==='Complete'?' selected':'')+'>Complete</option>'
-    +     '</select>'
-    +     (tk.TargetDate?'<div class="date-cell '+dc(tk.TargetDate)+'" style="margin-top:2px">'+fmt(tk.TargetDate)+'</div>':'')
-    +   '</div>'
-    +   '<div style="padding:6px 8px" onclick="event.stopPropagation()">'
-    +     '<input type="date" value="'+(tk.TargetDate||'')+'" class="date-cell" title="Target date" onchange="updateDate(\''+tk._id+'\',this.value)">'
-    +   '</div>'
-    + '</div>'
-    + (open ? renderSteps(c, tk, steps) : '')
-    + '</div>';
+  var steps = JSON.parse(tk.StepsJson||'[]');
+  var done  = steps.filter(function(s){return s.done;}).length;
+  var html = '<div class="task-row'+(isLast?' task-row-last':'')+'">'+
+    '<div class="task-hdr" onclick="toggleTk(\''+tk._id+'\')">'+
+      '<span class="chev '+(open?'open':'')+'" id="chtk-'+tk._id+'">&#9658;</span>'+
+      '<div style="flex:1;min-width:0"><div class="task-name">'+escH(tk.TaskName)+'</div>'+
+        '<div class="task-meta">'+done+' of '+steps.length+' complete</div></div>'+
+      '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+
+        pill(tk.Status)+
+        dateDisp(tk.TargetDate,'tk-date-'+tk._id,'task:'+tk._id,'date')+
+      '</div>'+
+    '</div>';
+  if (open) {
+    html += '<div class="task-detail">'+
+      '<div class="checklist">'+steps.map(function(s,si){
+        var isGtm = GTM_STEPS.indexOf(s.label)>=0;
+        var jobLink = (si===1 && c.Job) ? '<div style="margin-top:2px"><a style="font-size:10px;color:var(--blue-text);background:var(--blue-bg);padding:1px 6px;border-radius:3px;text-decoration:none" href="'+(c.JobLink||'#')+'" target="_blank">'+escH(c.Job)+'</a></div>' : '';
+        return '<div class="cl-row">'+
+          '<div class="cbx '+(s.done?'done':'')+'" onclick="toggleStep(\''+tk._id+'\','+si+',event)">'+(s.done?'&#10003;':'')+'</div>'+
+          '<div>'+
+            '<span class="cl-label'+(s.done?' done':'')+'">'+escH(s.label)+
+              (isGtm?'<span class="cl-tag tag-gtm">GTM</span>':'')+'</span>'+
+            jobLink+
+            (isGtm?'<div class="cl-sub">CSM: '+csmDisp(c.CSM,'step-csm-'+si+'-'+tk._id,'task:'+tk._id,'csm')+'</div>':'')+
+            (s.comment?'<div style="font-size:10px;color:var(--text2);background:var(--bg3);padding:2px 6px;border-radius:3px;margin-top:2px;cursor:pointer" onclick="editCmt(\''+tk._id+'\','+si+',this)">'+escH(s.comment)+'</div>':
+              '<input style="font-size:10px;color:var(--text2);background:transparent;border:none;border-bottom:.5px solid var(--border2);outline:none;width:100%;margin-top:2px" placeholder="Add comment…" onblur="saveCmt(\''+tk._id+'\','+si+',this.value,this)" onkeydown="if(event.key===\'Enter\')this.blur()">')+
+          '</div></div>';
+      }).join('')+'</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
 }
 
-function renderSteps(c, tk, steps) {
-  var isTbd = steps.length > 0 && steps[0].label.indexOf('TBD') >= 0;
-  var tbdBanner = isTbd
-    ? '<div style="padding:8px 12px 4px 78px;font-size:11px;color:var(--amber-text);background:var(--amber-bg);border-bottom:.5px solid var(--border)">Checklist not yet finalized — steps are placeholders.</div>'
-    : '';
-  var rows = steps.map(function(s, si) {
-    var cbxClass  = 'cbx' + (s.done ? ' done' : '');
-    var onclick   = isTbd ? '' : 'toggleStep("'+tk._id+'",'+si+')';
-    var cbxStyle  = isTbd ? 'opacity:0.4;cursor:not-allowed;' : '';
-    var checkmark = s.done ? '&#10003;' : '';
-    var tbdTag    = isTbd ? '<span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:1px 5px;border-radius:3px;vertical-align:middle">TBD</span>' : '';
-    var jobLink   = (!isTbd && si===1 && c.Job)
-      ? '<div style="margin-top:3px"><a class="job-link" href="'+(c.JobLink||'#')+'" target="_blank">'+c.Job+'</a></div>' : '';
-    var cmtHtml = !isTbd
-      ? '<div style="margin-top:4px" onclick="event.stopPropagation()">'
-          + (s.comment
-            ? '<div class="cmt-display" onclick="editCmt(\''+tk._id+'\','+si+',this.dataset.cmt)" data-cmt="'+s.comment.replace(/"/g,'&quot;')+'">'+s.comment+'</div>'
-            : '<input class="inline-edit" placeholder="Add comment\u2026" style="font-size:10px;color:var(--text2)" onblur="saveCmt(\''+tk._id+'\','+si+',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()">')
-          + '</div>'
-      : '';
-    return '<div class="step-row">'
-      + '<div style="display:flex;align-items:flex-start"><div class="'+cbxClass+'" onclick="'+onclick+'" style="'+cbxStyle+'">'+checkmark+'</div></div>'
-      + '<div><div class="step-label'+(s.done?' done':'')+'"'+(isTbd?' style="color:var(--text3)"':'')+'>'+s.label+' '+tbdTag+'</div>'+jobLink+cmtHtml+'</div>'
-      + '</div>';
-  }).join('');
-  return '<div class="step-rows" id="steps-'+tk._id+'">'+tbdBanner+rows+'</div>';
+// ── Iterative block ───────────────────────────────────────────────────────────
+function renderIterative(c, matchTk, dqTk) {
+  var open   = openTk.has('iter-'+c._id);
+  var cid    = c._id;
+  var cycleN = cycles[cid] || 1;
+  var mSteps = JSON.parse(matchTk.StepsJson||'[]');
+  var dSteps = dqTk ? JSON.parse(dqTk.StepsJson||'[]') : [];
+  var allDone= mSteps.concat(dSteps).filter(function(s){return s.done;}).length;
+  var allTot = mSteps.length + dSteps.length;
+  var pct    = allTot ? Math.round(allDone/allTot*100) : 0;
+  var status = pct===100?'Complete':pct>0?'In progress':'Not started';
+
+  // Determine cycle track position
+  var mDone = mSteps.every(function(s){return s.done;});
+  var dDone = dSteps.every(function(s){return s.done;});
+  var completeBenchmark = dSteps.length>=3 ? dSteps[1].done : false;
+  var completeAccuracy  = dSteps.length>=3 ? dSteps[2].done : false;
+  var step0 = mDone?'ct-done':'ct-active';
+  var step1 = mDone&&dSteps.some(function(s){return s.done;})?'ct-done':'';
+  var step2 = completeBenchmark?'ct-done':'';
+  var step3 = completeAccuracy?'ct-done':'';
+  if (!mDone) { step0='ct-active'; step1=step2=step3=''; }
+  else if (!dSteps.some(function(s){return s.done;})) { step1='ct-active'; }
+  else if (!completeBenchmark) { step2='ct-active'; }
+  else if (!completeAccuracy)  { step3='ct-active'; }
+
+  var html = '<div class="task-row">'+
+    '<div class="task-hdr" onclick="toggleTk(\'iter-'+cid+'\')">'+
+      '<span class="chev '+(open?'open':'')+'" id="chtk-iter-'+cid+'">&#9658;</span>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="task-name">Matching &amp; Data quality <span style="font-size:9px;background:var(--amber-bg);color:var(--amber-text);padding:1px 5px;border-radius:7px;margin-left:3px">Iterative</span></div>'+
+        '<div class="task-meta">Cycle '+cycleN+' &middot; '+allDone+' of '+allTot+' steps</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+pill(status)+
+        dateDisp(matchTk.TargetDate,'iter-date-'+cid,'task:'+matchTk._id,'date')+
+      '</div>'+
+    '</div>';
+
+  if (open) {
+    html += '<div class="iter-wrap">'+
+      '<div class="iter-top"><div style="font-size:11px;font-weight:500">Cycle tracker</div>'+
+        '<div class="cycle-badge" id="cb-'+cid+'">Cycle '+cycleN+'</div></div>'+
+      '<div class="cycle-track" id="ct-'+cid+'">'+
+        '<div class="ct-step '+step0+'">Matching</div>'+
+        '<div class="ct-step '+step1+'">DQ check</div>'+
+        '<div class="ct-step '+step2+'">Completeness?</div>'+
+        '<div class="ct-step '+step3+'">Accuracy?</div>'+
+      '</div>'+
+      '<div class="iter-note">If benchmarks not met &rarr; re-discovery &rarr; re-matching &rarr; DQ.</div>'+
+      '<div class="iter-section">Cycle '+cycleN+' &mdash; Matching</div>'+
+      mSteps.map(function(s,si){
+        return '<div class="cl-simple"><div class="cbx '+(s.done?'done':'')+'" onclick="toggleStep(\''+matchTk._id+'\','+si+',event)">'+(s.done?'&#10003;':'')+'</div>'+
+          '<span style="font-size:11px'+(s.done?';text-decoration:line-through;color:var(--text2)':'')+'">'+escH(s.label)+'</span></div>';
+      }).join('')+
+      '<div class="iter-section">Cycle '+cycleN+' &mdash; Data quality</div>'+
+      dSteps.map(function(s,si){
+        return '<div class="cl-simple"><div class="cbx '+(s.done?'done':'')+'" onclick="'+(dqTk?'toggleStep(\''+dqTk._id+'\','+si+',event)':'')+'">'+
+          (s.done?'&#10003;':'')+'</div>'+
+          '<span style="font-size:11px'+(s.done?';text-decoration:line-through;color:var(--text2)':'')+'">'+escH(s.label)+'</span></div>';
+      }).join('')+
+      '<div id="ch-'+cid+'"></div>'+
+      '<div class="add-cycle-btn" onclick="addCycle(\''+cid+'\',event)">+ Benchmarks not met &mdash; add cycle</div>'+
+    '</div>';
+  }
+  html += '</div>';
+  return html;
 }
+
 
 // ── Interactions ──────────────────────────────────────────────────────────────
-function toggleT(id)  { if(openT.has(id)) openT.delete(id); else openT.add(id); reTr(id); }
-function toggleC(id)  { if(openC.has(id)) openC.delete(id); else openC.add(id); reCu(id); }
+function toggleT(id)  { if(openT.has(id)) openT.delete(id); else openT.add(id); reFromId(id); }
+function toggleC(id)  { if(openC.has(id)) openC.delete(id); else openC.add(id); reC(id); }
 function toggleTk(id) { if(openTk.has(id)) openTk.delete(id); else openTk.add(id); reTk(id); }
 
-function toggleStep(tkId, si) {
-  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
+function reFromId(id) {
+  // Could be a phase key (p1-cid, p2-cid, so-cid) or tranche id or churn section
+  if (id.startsWith('p1-')||id.startsWith('p2-')||id.startsWith('so-')) {
+    reC(id.substring(3));
+  } else if (id.startsWith('churn-')) {
+    var tid = id.substring(6);
+    reTr(tid);
+  } else {
+    reTr(id);
+  }
+}
+
+function toggleStep(tkId, si, e) {
+  if (e) e.stopPropagation();
+  var tk = S.tasks.find(function(t){return t._id===tkId;});
+  if (!tk) return;
   var steps = JSON.parse(tk.StepsJson||'[]');
   steps[si].done = !steps[si].done;
   tk.StepsJson = JSON.stringify(steps);
   var done = steps.filter(function(s){return s.done;}).length;
-  tk.Pct    = Math.round(done / steps.length * 100);
-  tk.Status = tk.Pct===100?'Complete':tk.Pct>0?'In progress':'Not started';
-  scheduleSave('tasks', tk._id, {StepsJson:tk.StepsJson, Pct:tk.Pct, Status:tk.Status});
-  reTk(tkId); reCu(tk.CustomerId); reTr(tk.TrancheId); renderStats();
+  tk.Pct   = Math.round(done/steps.length*100);
+  tk.Status= tk.Pct===100?'Complete':tk.Pct>0?'In progress':'Not started';
+  saveTask(tk);
+  reTk(tkId);
+  reC(tk.CustomerId);
+  reTr(tk.TrancheId);
+  renderStats();
 }
-function updateStatus(tkId, val) {
-  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
-  tk.Status = val; tk.Pct = val==='Complete'?100:val==='In progress'?50:0;
-  scheduleSave('tasks', tk._id, {Status:val, Pct:tk.Pct});
-  reTk(tkId); reCu(tk.CustomerId); reTr(tk.TrancheId); renderStats();
-}
-function updateDate(tkId, val) {
-  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
-  tk.TargetDate = val; scheduleSave('tasks', tk._id, {TargetDate:val});
-}
-function updateCSM(cid, val) {
-  var c = S.customers.find(function(x){return x._id===cid;}); if (!c) return;
-  c.CSM = val.trim(); scheduleSave('customers', c._id, {CSM:c.CSM}); reCu(cid);
-}
-function saveCmt(tkId, si, val) {
+
+function saveCmt(tkId, si, val, el) {
   if (!val.trim()) return;
-  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
-  var steps = JSON.parse(tk.StepsJson||'[]'); steps[si].comment = val.trim();
-  tk.StepsJson = JSON.stringify(steps); scheduleSave('tasks', tk._id, {StepsJson:tk.StepsJson}); reTk(tkId);
+  var tk = S.tasks.find(function(t){return t._id===tkId;}); if(!tk) return;
+  var steps = JSON.parse(tk.StepsJson||'[]');
+  steps[si].comment = val.trim();
+  tk.StepsJson = JSON.stringify(steps);
+  saveTask(tk);
+  reTk(tkId);
 }
-function editCmt(tkId, si, ex) {
-  var tk = S.tasks.find(function(t){return t._id===tkId;}); if (!tk) return;
-  var nv = prompt('Edit comment:', ex); if (nv===null) return;
-  var steps = JSON.parse(tk.StepsJson||'[]'); steps[si].comment = nv.trim();
-  tk.StepsJson = JSON.stringify(steps); scheduleSave('tasks', tk._id, {StepsJson:tk.StepsJson}); reTk(tkId);
+function editCmt(tkId, si, el) {
+  var tk = S.tasks.find(function(t){return t._id===tkId;}); if(!tk) return;
+  var steps = JSON.parse(tk.StepsJson||'[]');
+  var nv = prompt('Edit comment:', steps[si].comment||'');
+  if (nv===null) return;
+  steps[si].comment = nv.trim();
+  tk.StepsJson = JSON.stringify(steps);
+  saveTask(tk);
+  reTk(tkId);
+}
+
+function addCycle(cid, e) {
+  if (e) e.stopPropagation();
+  cycles[cid] = (cycles[cid]||1) + 1;
+  var n = cycles[cid];
+  // Log cycle history in the DOM
+  var h = document.getElementById('ch-'+cid);
+  if (h) {
+    if (!h.querySelector('.iter-section')) {
+      var l = document.createElement('div'); l.className='iter-section'; l.textContent='Cycle history'; h.appendChild(l);
+    }
+    for (var i=1;i<n;i++) {
+      if (!document.getElementById('hr-'+cid+'-'+i)) {
+        var r=document.createElement('div'); r.id='hr-'+cid+'-'+i;
+        r.style.cssText='display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);padding:3px 0;border-bottom:.5px solid var(--border)';
+        r.innerHTML='<div style="width:14px;height:14px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">'+i+'</div>Cycle '+i+' — benchmarks not met, restarted with re-discovery';
+        h.appendChild(r);
+      }
+    }
+    var curr=document.getElementById('hr-'+cid+'-curr');
+    if(!curr){curr=document.createElement('div');curr.id='hr-'+cid+'-curr';curr.style.cssText='display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);padding:3px 0';h.appendChild(curr);}
+    curr.innerHTML='<div style="width:14px;height:14px;border-radius:50%;background:var(--blue-bg);color:var(--blue-text);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">'+n+'</div>Cycle '+n+' — in progress';
+    var badge=document.getElementById('cb-'+cid);
+    if(badge) badge.textContent='Cycle '+n;
+  }
+  // Reset cycle track
+  var ct=document.getElementById('ct-'+cid);
+  if(ct){var steps=ct.querySelectorAll('.ct-step');steps.forEach(function(s){s.className='ct-step';});steps[0].className='ct-step ct-active';}
+  // Save cycle count in a task field
+  var tk=S.tasks.find(function(t){return t.CustomerId===cid&&t.TaskName==='Matching';});
+  if(tk) saveTask(tk,{CycleData:String(n)});
 }
 
 // ── Re-render helpers ─────────────────────────────────────────────────────────
-function reTr(id) { var el=document.getElementById('tr-'+id); if(!el)return; var tr=S.tranches.find(function(x){return x._id===id;}); if(!tr)return; el.outerHTML=renderTranche(tr); }
-function reCu(id) { var el=document.getElementById('cu-'+id); if(!el)return; var c=S.customers.find(function(x){return x._id===id;}); if(!c)return; el.outerHTML=renderCust(c); }
-function reTk(id) { var el=document.getElementById('tkr-'+id); if(!el)return; var tk=S.tasks.find(function(t){return t._id===id;}); if(!tk)return; var c=S.customers.find(function(x){return x._id===tk.CustomerId;}); if(!c)return; el.outerHTML=renderTaskRow(c,tk); }
-
-// ── Stats ─────────────────────────────────────────────────────────────────────
-function renderStats() {
-  var pcts    = S.customers.map(function(c){return custPct(c._id);});
-  var done    = pcts.filter(function(p){return p===100;}).length;
-  var inprog  = pcts.filter(function(p){return p>0&&p<100;}).length;
-  var notstart= pcts.filter(function(p){return p===0;}).length;
-  var avg     = pcts.length ? Math.round(pcts.reduce(function(a,b){return a+b;},0)/pcts.length) : 0;
-  var atRisk  = S.customers.filter(function(c){return (c.Notes||'').toLowerCase().indexOf('risk')>=0||c.Status==='churned';}).length;
-  var total   = pcts.length;
-  document.getElementById('stat-row').innerHTML =
-    '<div class="stat"><div class="stat-label">Overall progress</div><div class="stat-val">'+avg+'%</div><div class="stat-sub">across all platforms</div></div>'
-    +'<div class="stat"><div class="stat-label">Customers complete</div><div class="stat-val">'+done+'</div><div class="stat-sub">of '+total+' total</div></div>'
-    +'<div class="stat"><div class="stat-label">In progress</div><div class="stat-val">'+inprog+'</div><div class="stat-sub">active migrations</div></div>'
-    +'<div class="stat"><div class="stat-label">At risk</div><div class="stat-val">'+atRisk+'</div><div class="stat-sub">renewal or timeline risk</div></div>';
-  var dW=Math.round(done/total*100), pW=Math.round(inprog/total*100), nW=100-dW-pW;
-  document.getElementById('pipe-bar').innerHTML =
-    '<div class="pipe-hdr"><span style="font-weight:500;font-size:12px">Migration pipeline &mdash; all platforms</span><span style="color:var(--text2)">'+avg+'% complete</span></div>'
-    +'<div class="bar-track"><div class="bar-seg" style="width:'+dW+'%;background:#3B6D11"></div><div class="bar-seg" style="width:'+pW+'%;background:#185FA5"></div><div class="bar-seg" style="width:'+nW+'%;background:#D3D1C7"></div></div>'
-    +'<div class="leg-row"><div class="leg"><div class="dot" style="background:#3B6D11"></div>Complete ('+done+')</div><div class="leg"><div class="dot" style="background:#185FA5"></div>In progress ('+inprog+')</div><div class="leg"><div class="dot" style="background:#D3D1C7"></div>Not started ('+notstart+')</div></div>';
+function reTr(tid) {
+  var el = document.getElementById('tbl-'+tid);
+  if (!el) return;
+  var tr = S.tranches.find(function(t){return t._id===tid;});
+  if (!tr) return;
+  el.outerHTML = renderTranche(tr);
+}
+function reC(cid) {
+  var el = document.getElementById('cu-'+cid);
+  if (!el) return;
+  var c  = S.customers.find(function(x){return x._id===cid;});
+  if (!c) return;
+  var tr = S.tranches.find(function(t){return t._id===c.TrancheId;});
+  el.outerHTML = renderCustomer(c, tr||{_id:c.TrancheId});
+  // Also re-render the detail if it was open
+  if (openC.has(cid)) {
+    var det = document.getElementById('cud-'+cid);
+    // it's included in renderCustomer output already
+  }
+}
+function reTk(tkId) {
+  // For iterative, re-render the whole customer
+  if (tkId.startsWith('iter-')) { reC(tkId.substring(5)); return; }
+  var tk = S.tasks.find(function(t){return t._id===tkId;});
+  if (!tk) return;
+  var c  = S.customers.find(function(x){return x._id===tk.CustomerId;});
+  if (!c) return;
+  var tr = S.tranches.find(function(t){return t._id===c.TrancheId;});
+  // Find the task row element
+  var el = document.getElementById('tkr-'+tkId);
+  if (el) { el.outerHTML = renderTaskRow(c, tk, false); return; }
+  // Fall back to full customer re-render
+  reC(c._id);
 }
 
-// ── Filters / search / tab switch ─────────────────────────────────────────────
-function doSearch(el, plat) { tabSearch[plat]=el.value; reTab(plat); }
-function doFilter(btn, plat, f) {
-  var isOn = btn.classList.contains('on');
-  btn.closest('.toolbar').querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('on');});
-  tabFilter[plat] = isOn ? null : f;
-  if (!isOn) btn.classList.add('on');
-  reTab(plat);
-}
-function switchTab(key) { activeTab=key; renderTabs(); }
-function reTab(plat) { var el=document.getElementById('tab-'+plat); if(el) el.innerHTML=renderPlatform(plat); }
-
-// ── Start ─────────────────────────────────────────────────────────────────────
-loadDemo();
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
 </script>
 </body>
 </html>
