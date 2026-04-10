@@ -266,37 +266,65 @@ function spHeaders(digest) {
   return h;
 }
 function getDigest() {
-  return fetch(SP_SITE + '/_api/contextinfo', { method:'POST', headers:{ Accept:'application/json;odata=verbose' }, credentials:'include' })
-    .then(function(r){ return r.json(); })
-    .then(function(j){ return j.d.GetContextWebInformation.FormDigestValue; });
+  return fetch(SP_SITE + '/_api/contextinfo', {
+    method:'POST',
+    headers:{ Accept:'application/json;odata=verbose' },
+    credentials:'include',
+    mode:'cors'
+  })
+  .then(function(r){
+    if (!r.ok) throw new Error('contextinfo HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(j){
+    if (!j.d || !j.d.GetContextWebInformation) throw new Error('Bad contextinfo response: ' + JSON.stringify(j).substring(0,200));
+    return j.d.GetContextWebInformation.FormDigestValue;
+  })
+  .catch(function(e){
+    console.error('getDigest failed:', e);
+    setInd('err', 'Auth failed: ' + e.message);
+    throw e;
+  });
 }
 function spGet(listId, filter) {
   var url = spApi(listId) + '?$top=2000' + (filter ? '&$filter=' + filter : '');
-  return fetch(url, { credentials:'include', headers:{ Accept:'application/json;odata=verbose' } })
-    .then(function(r){ return r.json(); })
-    .then(function(j){ return j.d.results; });
+  return fetch(url, { credentials:'include', mode:'cors', headers:{ Accept:'application/json;odata=verbose' } })
+    .then(function(r){
+      if (!r.ok) throw new Error('spGet HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(j){
+      if (!j.d) throw new Error('spGet bad response');
+      return j.d.results;
+    });
 }
 function spCreate(listId, fields, type) {
   return getDigest().then(function(d) {
     fields.__metadata = { type: type };
-    return fetch(spApi(listId), { method:'POST', credentials:'include', headers:spHeaders(d), body:JSON.stringify(fields) })
-      .then(function(r){ return r.json(); }).then(function(j){ return j.d; });
+    return fetch(spApi(listId), { method:'POST', credentials:'include', mode:'cors', headers:spHeaders(d), body:JSON.stringify(fields) })
+      .then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('spCreate HTTP '+r.status+': '+t.substring(0,200)); });
+        return r.json();
+      })
+      .then(function(j){ return j.d; });
   });
 }
 function spUpdate(listId, itemId, fields, type) {
   return getDigest().then(function(d) {
     fields.__metadata = { type: type };
     return fetch(spApi(listId) + '(' + itemId + ')', {
-      method:'POST', credentials:'include',
+      method:'POST', credentials:'include', mode:'cors',
       headers:Object.assign(spHeaders(d), { 'IF-MATCH':'*', 'X-HTTP-Method':'MERGE' }),
       body:JSON.stringify(fields)
+    }).then(function(r){
+      if (!r.ok) return r.text().then(function(t){ throw new Error('spUpdate HTTP '+r.status+': '+t.substring(0,200)); });
     });
   });
 }
 function spDelete(listId, itemId) {
   return getDigest().then(function(d) {
     return fetch(spApi(listId) + '(' + itemId + ')', {
-      method:'POST', credentials:'include',
+      method:'POST', credentials:'include', mode:'cors',
       headers:Object.assign(spHeaders(d), { 'IF-MATCH':'*', 'X-HTTP-Method':'DELETE' })
     });
   });
