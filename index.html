@@ -90,13 +90,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 
 /* ── Churned section ── */
 .churned-hdr{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 18px;background:var(--bg2);border-bottom:.5px solid var(--border);cursor:pointer}
-.churned-hdr:hover{filter:brightness(.97)}
+.churned-hdr:hover{background:var(--bg3)}
 
 /* ── L2 Phase band ── */
 .phase-band{border-bottom:.5px solid var(--border)}
 .phase-band:last-child{border-bottom:none}
 .phase-row{display:flex;align-items:center;padding:5px 10px 5px 26px;cursor:pointer;gap:6px;border-left:3px solid transparent}
-.phase-row:hover{filter:brightness(.97)}
+.ph1-row:hover{background:#D8E9F7}
+.ph2-row:hover{background:#D5EAC8}
+.so-row:hover{background:#E4E2FC}
 .ph1-row{background:var(--blue-bg);border-left-color:#185FA5}
 .ph2-row{background:var(--green-bg);border-left-color:#3B6D11}
 .so-row{background:var(--purple-bg);border-left-color:#7F77DD}
@@ -238,7 +240,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 var SP_SITE   = 'https://wisersolutionsinc.sharepoint.com/sites/TEAM-Delivery-Polaris';
 var SP_TASKS  = '3740e890-8692-4a59-be63-ce70c9d9ab85';
 var SP_TRANCH = '307d3677-f079-424b-87e4-49321bb99e81';
-var SP_READY  = true;
+// Set to true once SharePoint anonymous access is configured (see SETUP.md)
+var SP_READY  = false;
 
 // ── State ────────────────────────────────────────────────────────────────────
 var S = { tranches:[], customers:[], tasks:[] };
@@ -795,7 +798,8 @@ function renderCustomer(c, tr) {
     platTranches.map(function(t){return '<option value="'+t._id+'">'+escH(t.Title)+'</option>';}).join('');
 
   var rowClass = 'c-row' + (c.Churned?' churned-row':'');
-  var html = '<div class="'+rowClass+'" id="cu-'+c._id+'" onclick="toggleC(\''+c._id+'\')">';
+  var html = '<div id="cu-wrap-'+c._id+'">';
+  html += '<div class="'+rowClass+'" id="cu-'+c._id+'" onclick="toggleC(\''+c._id+'\')">';
   html += '<div></div>';
   html += '<div><span class="chev '+(open?'open':'')+'" id="chc-'+c._id+'">&#9658;</span></div>';
   html += '<div class="cc" style="text-align:left;min-width:0">'+
@@ -833,6 +837,7 @@ function renderCustomer(c, tr) {
     html += renderSignOff(c, tasks);
     html += '</div>';
   }
+  html += '</div>'; // close cu-wrap
   return html;
 }
 
@@ -1123,17 +1128,13 @@ function reTr(tid) {
   el.outerHTML = renderTranche(tr);
 }
 function reC(cid) {
-  var el = document.getElementById('cu-'+cid);
+  var el = document.getElementById('cu-wrap-'+cid);
+  if (!el) el = document.getElementById('cu-'+cid); // fallback
   if (!el) return;
   var c  = S.customers.find(function(x){return x._id===cid;});
   if (!c) return;
   var tr = S.tranches.find(function(t){return t._id===c.TrancheId;});
   el.outerHTML = renderCustomer(c, tr||{_id:c.TrancheId});
-  // Also re-render the detail if it was open
-  if (openC.has(cid)) {
-    var det = document.getElementById('cud-'+cid);
-    // it's included in renderCustomer output already
-  }
 }
 function reTk(tkId) {
   // For iterative, re-render the whole customer
