@@ -241,7 +241,7 @@ var SP_SITE   = 'https://wisersolutionsinc.sharepoint.com/sites/TEAM-Delivery-Po
 var SP_TASKS  = '3740e890-8692-4a59-be63-ce70c9d9ab85';
 var SP_TRANCH = '307d3677-f079-424b-87e4-49321bb99e81';
 // Set to true once SharePoint anonymous access is configured (see SETUP.md)
-var SP_READY  = false;
+var SP_READY  = true;
 
 // ── State ────────────────────────────────────────────────────────────────────
 var S = { tranches:[], customers:[], tasks:[] };
@@ -309,8 +309,18 @@ function setInd(s, msg) {
   var st = document.getElementById('save-time');
   if (!el) return;
   el.className = 'save-ind ' + (s||'');
-  el.textContent = msg || (s==='saving'?'Saving…':s==='saved'?'Saved':s==='err'?'Save failed':'');
-  if (s==='saved' && st) st.textContent = new Date().toLocaleTimeString();
+  if (msg) {
+    el.textContent = msg;
+  } else if (s === 'saving') {
+    el.textContent = SP_READY ? 'Saving…' : 'Saving locally…';
+  } else if (s === 'saved') {
+    el.textContent = SP_READY ? 'Saved' : 'Saved locally (not persisted — SharePoint pending)';
+  } else if (s === 'err') {
+    el.textContent = 'Save failed';
+  } else {
+    el.textContent = '';
+  }
+  if (s === 'saved' && st) st.textContent = new Date().toLocaleTimeString();
 }
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
